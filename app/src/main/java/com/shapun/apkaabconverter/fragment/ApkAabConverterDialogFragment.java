@@ -11,6 +11,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -141,7 +142,9 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 						   tvLogs.setText(logger.getLogs());
 						});
 					});
-					root.addView(tvLogs);
+					ScrollView scrollview = new ScrollView(requireContext());
+					root.addView(scrollview);
+					scrollview.addView(tvLogs);
 					Executors.newSingleThreadExecutor().execute(() -> {
 						try{
 							if (mMode == APK_TO_AAB) {
