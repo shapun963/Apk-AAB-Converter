@@ -21,9 +21,9 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.shapun.apkaabconverter.converter.AabToApkConverter;
 import com.shapun.apkaabconverter.R;
-import com.shapun.apkaabconverter.converter.ApkToAaabConverter;
+import com.shapun.apkaabconverter.converter.AABToApkConverter;
+import com.shapun.apkaabconverter.converter.ApkToAABConverter;
 import com.shapun.apkaabconverter.converter.Logger;
 import com.shapun.apkaabconverter.util.Utils;
 import java.io.File;
@@ -148,15 +148,15 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 					Executors.newSingleThreadExecutor().execute(() -> {
 						try{
 							if (mMode == APK_TO_AAB) {
-								ApkToAaabConverter apkToAabConverter = new ApkToAaabConverter.Builder(requireContext(),mTempInputPath,mTempOutputPath)
+								ApkToAABConverter apkToAabConverter = new ApkToAABConverter.Builder(requireContext(),mTempInputPath,mTempOutputPath)
 									.setLogger(logger)
 									.build();
 									apkToAabConverter.start();
 							} else {
-								AabToApkConverter apkToAabConverter =new AabToApkConverter.Builder(requireContext(),mTempInputPath,mTempOutputPath)
+								AABToApkConverter aabToApkConverter =new AABToApkConverter.Builder(requireContext(),mTempInputPath,mTempOutputPath)
 										.setLogger(logger)
 										.build();
-										apkToAabConverter.start();
+										aabToApkConverter.start();
 							}
 							try(InputStream is2 = new FileInputStream(mTempOutputPath);OutputStream os2 = getContentResolver().openOutputStream(mOutputUri)) {
 							    copy(is2,os2);

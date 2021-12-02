@@ -7,11 +7,11 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-public class AabToApkConverter extends FileConverter{
+public class AABToApkConverter extends FileConverter{
 	
 	private final File AAPT2Binary;
     
-    public AabToApkConverter(Builder builder) {
+    public AABToApkConverter(Builder builder) {
         super(builder);
 		AAPT2Binary = new File(getContext().getApplicationInfo().nativeLibraryDir, "libaapt2.so");
     }
@@ -54,8 +54,8 @@ public class AabToApkConverter extends FileConverter{
 			super(context,aabFile,outputPath);
 		}
 		@Override
-		public AabToApkConverter build(){
-			return new AabToApkConverter(this);
+		public AABToApkConverter build(){
+			return new AABToApkConverter(this);
 		}
         @Override
         protected Builder self() {

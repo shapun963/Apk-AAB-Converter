@@ -39,8 +39,6 @@ public class App extends Application {
 		});
 		
 		super.onCreate();
-Logger.initialize(this);
-;
 		
 	}
 	private String getStackTrace(Throwable th){

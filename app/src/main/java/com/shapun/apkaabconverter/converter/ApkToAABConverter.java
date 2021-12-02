@@ -16,14 +16,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class ApkToAaabConverter extends FileConverter {
+public class ApkToAABConverter extends FileConverter {
     private static final int BUFFER_SIZE = 1024 * 2;
     private final File AAPT2Binary;
     private final File mTempDir;
     private final File mProtoOutput;
     private final File mBaseZip;
 
-    public ApkToAaabConverter(Builder builder) {
+    public ApkToAABConverter(Builder builder) {
         super(builder);
         AAPT2Binary = new File(getContext().getApplicationInfo().nativeLibraryDir, "libaapt2.so");
         mTempDir = new File(getContext().getExternalFilesDir(null), "temp");
@@ -101,7 +101,6 @@ public class ApkToAaabConverter extends FileConverter {
                     } else {
                         continue;
                     }
-					
 					addLog("Adding "+entry.getName()+" to base.zip");
 					
                     byte[] buffer = new byte[BUFFER_SIZE];
@@ -151,8 +150,8 @@ public class ApkToAaabConverter extends FileConverter {
         }
 
         @Override
-        public ApkToAaabConverter build() {
-            return new ApkToAaabConverter(this);
+        public ApkToAABConverter build() {
+            return new ApkToAABConverter(this);
         }
 
         @Override
