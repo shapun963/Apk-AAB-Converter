@@ -1,9 +1,7 @@
 package com.shapun.apkaabconverter.converter;
 
 import android.content.Context;
-
 import com.android.tools.build.bundletool.BundleToolMain;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -103,7 +101,9 @@ public class ApkToAaabConverter extends FileConverter {
                     } else {
                         continue;
                     }
-
+					
+					addLog("Adding "+entry.getName()+" to base.zip");
+					
                     byte[] buffer = new byte[BUFFER_SIZE];
                     int len;
                     while ((len = zipInputStream.read(buffer)) != -1) {
