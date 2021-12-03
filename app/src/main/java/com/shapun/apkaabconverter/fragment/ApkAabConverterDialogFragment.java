@@ -116,7 +116,7 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 		mTempDir.mkdirs();
 		mTempInputPath = new File(mTempDir,(mMode == AAB_TO_APK)?"input.aab":"input.apk");
 		mTempOutputPath = new File(mTempDir,(mMode == AAB_TO_APK)?"output.apks":"output.aab");
-        
+        btn_convert.setText((mMode == APK_TO_AAB)?"Convert To AAB":"Convert To Apk");
         btn_convert.setOnClickListener(v -> {
 			if(mInputUri == null){
 				Utils.toast(requireContext(),"Input can't be empty");
