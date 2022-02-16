@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context=".fragment.ApkToAABDialogFragment">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round_outline"
+        android:backgroundTint="@color/colorDialogBackground"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_apk_path"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:hint="Select apk file to convert"
+            app:endIconContentDescription="Pick Apk"
+            app:endIconDrawable="@drawable/ic_attach_file_24dp"
+            app:endIconMode="custom"
+            app:hintTextColor="?colorAccent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tiet_apk_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_aab_path"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:hint="Select AAb output path"
+            app:endIconContentDescription="Select AAB output path"
+            app:endIconDrawable="@drawable/ic_attach_file_24dp"
+            app:endIconMode="custom"
+            app:hintTextColor="?colorAccent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tiet_aab_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:text="The below options are optional"/>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_config_path"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:hint="Select Config File"
+            app:endIconContentDescription="Select Config File"
+            app:endIconDrawable="@drawable/ic_attach_file_24dp"
+            app:endIconMode="custom"
+            app:hintTextColor="?colorAccent">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tiet_config_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_metadata_path"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:hint="Select MetaData File"
+            app:endIconContentDescription="Select MetaData File"
+            app:endIconDrawable="@drawable/ic_attach_file_24dp"
+            app:endIconMode="custom"
+            app:hintTextColor="?colorAccent">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tiet_metadata_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:text="Currently the Generated AAB is not signed and thus must be signed using jarsigner before uploading to PlayStore"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_apk_to_aab"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Build AAB"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            app:backgroundTint="?colorPrimary"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+</ScrollView>

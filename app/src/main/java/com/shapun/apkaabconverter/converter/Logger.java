@@ -2,7 +2,7 @@ package com.shapun.apkaabconverter.converter;
 
 public class Logger {
 	
-	private StringBuilder mLogs ;
+	private final StringBuilder mLogs ;
 	private LogListener mLogListener;
 	
 	public Logger(){
@@ -34,6 +34,6 @@ public class Logger {
 	
 	@FunctionalInterface
 	public interface LogListener{
-		public void onLogAdded(String log);
+		void onLogAdded(String log);
 	}
 }

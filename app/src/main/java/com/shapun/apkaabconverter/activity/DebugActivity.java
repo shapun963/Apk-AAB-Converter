@@ -37,7 +37,7 @@ public class DebugActivity extends Activity {
 					if (spilt[0].contains(exceptionType[j])) {
 						madeErrMsg = errMessage[j];
 						int addIndex = spilt[0].indexOf(exceptionType[j]) + exceptionType[j].length();
-						madeErrMsg += spilt[0].substring(addIndex, spilt[0].length());
+						madeErrMsg += spilt[0].substring(addIndex);
 						break;
 					}
 				}
