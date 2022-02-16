@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Apk AAB Converter</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="sign_apk">Sign Apk</string>
+    <string name="hint_select_aab_file">Select AAB File</string>
+    <string name="convert_to_apk">Convert To Apk</string>
+    <string name="select_apk_output_path">Select apk output path</string>
+    <string name="selecy_output_path">Select Output path</string>
+    <string name="select_output_path">select_output_path</string>
 </resources>

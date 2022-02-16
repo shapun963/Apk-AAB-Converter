@@ -37,30 +37,30 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ApkAabConverterDialogFragment extends DialogFragment {
-    public static final int APK_TO_AAB = 1;
-    public static final int AAB_TO_APK = 2;
-    private int mMode;
-    private File mTempDir;
-    private File mTempInputPath;
-    private File mTempOutputPath;
+	public static final int APK_TO_AAB = 1;
+	public static final int AAB_TO_APK = 2;
+	private int mMode;
+	private File mTempDir;
+	private File mTempInputPath;
+	private File mTempOutputPath;
 	private Uri mInputUri;
 	private Uri mOutputUri;
-    private MaterialButton btn_convert;
+	private MaterialButton btn_convert;
 	private TextInputEditText tiet_input_path;
 	private TextInputEditText tiet_output_path;
 	private TextInputLayout til_input_path;
 	private TextInputLayout til_output_path;
-    private final ActivityResultLauncher<String> mResultLauncherSelectOutput =
-            registerForActivityResult(
-                    new ActivityResultContracts.CreateDocument(),
-                    result -> {
-                        if (result != null) {
+	private final ActivityResultLauncher<String> mResultLauncherSelectOutput =
+			registerForActivityResult(
+					new ActivityResultContracts.CreateDocument(),
+					result -> {
+						if (result != null) {
 							ContentResolver contentResolver = requireContext().getContentResolver();
 							String name = Utils.queryName(contentResolver,result);
 							if(mMode == AAB_TO_APK){
 								if(!name.endsWith(".apks")){
 									Utils.toast(requireContext(),"File name must end with .apks");
-									return;	
+									return;
 								}
 							}else{
 								if(!name.endsWith(".aab")){
@@ -69,15 +69,15 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 								}
 							}
 							mOutputUri = result;
-							tiet_output_path.setText(name);                 
-                        }
-                    });
-    private final ActivityResultLauncher<String> mResultLauncherSelectInput =
-            registerForActivityResult(
-                    new ActivityResultContracts.GetContent(),
-                    result -> {
-                        if (result != null) {
-                            ContentResolver cr = requireContext().getContentResolver();
+							tiet_output_path.setText(name);
+						}
+					});
+	private final ActivityResultLauncher<String> mResultLauncherSelectInput =
+			registerForActivityResult(
+					new ActivityResultContracts.GetContent(),
+					result -> {
+						if (result != null) {
+							ContentResolver cr = requireContext().getContentResolver();
 							String name = Utils.queryName(cr, result);
 							mInputUri = result;
 							if(mMode == AAB_TO_APK){
@@ -92,9 +92,9 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 								}
 							}
 							tiet_input_path.setText(name);
-                        }
-                    });
-    @Override
+						}
+					});
+	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_apk_aab_converter, container, false);
         initializeViews(view);
@@ -107,7 +107,7 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 		tiet_input_path = view.findViewById(R.id.tiet_input_path);
 		tiet_output_path = view.findViewById(R.id.tiet_output_path);
 		til_input_path = view.findViewById(R.id.til_input_path);
-		til_output_path = view.findViewById(R.id.til_output_path);		
+		til_output_path = view.findViewById(R.id.til_output_path);
     }
 
     private void initializeLogic(Bundle savedInstanceState) {
@@ -126,15 +126,15 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 				Utils.toast(requireContext(),"Output can't be empty");
 				return;
 			}
-			try (InputStream is = getContentResolver().openInputStream(mInputUri);OutputStream os = new FileOutputStream(mTempInputPath)) {                          
-                   copy(is,os);		   				   
+			try (InputStream is = getContentResolver().openInputStream(mInputUri);OutputStream os = new FileOutputStream(mTempInputPath)) {
+                   copy(is,os);
 				   setCancelable(false);
 				   ViewGroup root = (ViewGroup)getView();
 				   root.removeAllViews();
 				   ProgressBar progressbar = new ProgressBar(requireContext());
 				   root.addView(progressbar);
 				   TextView tvLogs = new TextView(requireContext());
-				   Utils.setPadding(tvLogs,(int)Utils.dpToPx(requireContext(),8));
+				   Utils.setPadding(tvLogs, Utils.dpToPx(requireContext(),8));
 				   tvLogs.setTextSize(18);
 				   Logger logger = new Logger();
 				   logger.setLogListener(log -> {
@@ -149,9 +149,9 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 						try{
 							if (mMode == APK_TO_AAB) {
 								ApkToAABConverter apkToAabConverter = new ApkToAABConverter.Builder(requireContext(),mTempInputPath,mTempOutputPath)
-									.setLogger(logger)
-									.build();
-									apkToAabConverter.start();
+										.setLogger(logger)
+										.build();
+								apkToAabConverter.start();
 							} else {
 								AABToApkConverter aabToApkConverter =new AABToApkConverter.Builder(requireContext(),mTempInputPath,mTempOutputPath)
 										.setLogger(logger)
@@ -175,12 +175,12 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 				 showErrorDialog(e.getMessage());
 			 }
         });
-				
+
 		til_input_path.setEndIconOnClickListener(v->{
 			mResultLauncherSelectInput.launch(("*/*"));
 			til_input_path.requestFocus();
 		});
-		
+
 		til_output_path.setEndIconOnClickListener(v->{
 			ContentResolver cr = getContentResolver();
 			String name = (mInputUri==null)?"unknown.???":Utils.queryName(cr,mInputUri);
@@ -191,7 +191,7 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 				mResultLauncherSelectOutput.launch(name+".apks");
 			}
 			til_output_path.requestFocus();
-		}); 
+		});
     }
 
     private void showErrorDialog(String error){
@@ -201,14 +201,16 @@ public class ApkAabConverterDialogFragment extends DialogFragment {
 				.setPositiveButton("Cancel",null)
 				.show();
 	}
-	
+
 	private void copy(InputStream is,OutputStream os) throws IOException{
 		byte[] buffer = new byte[1024];
 		int length;
 		while ((length = is.read(buffer)) > 0) {
            os.write(buffer, 0, length);
         }
+
 	}
+
 	private ContentResolver getContentResolver(){
 		return requireContext().getContentResolver();
 	}

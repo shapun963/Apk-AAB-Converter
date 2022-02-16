@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 
+
 public final class Utils {
     private Utils() {}
 
@@ -36,4 +37,5 @@ public final class Utils {
                         input,
                         context.getResources().getDisplayMetrics());
     }
+
 }

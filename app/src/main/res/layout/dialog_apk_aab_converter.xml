@@ -8,7 +8,7 @@
     android:background="@drawable/round_outline"
 	android:backgroundTint="@color/colorDialogBackground"
 	android:orientation="vertical"
-    tools:context=".MainActivity" >
+    tools:context=".fragment.ApkToAAb" >
 	<com.google.android.material.textfield.TextInputLayout
 		android:id="@+id/til_input_path"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
