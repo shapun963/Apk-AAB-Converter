@@ -115,7 +115,6 @@ class AABToApkDialogFragment : DialogFragment() {
         binding.signOptions.tilKsPath.setEndIconOnClickListener {
             mResultLauncherSelectJKS.launch("*/*")
         }
-
         return binding.root
     }
 
@@ -140,6 +139,7 @@ class AABToApkDialogFragment : DialogFragment() {
                         mTempOutputPath
                     )
                         .setLogger(logger)
+                        .setVerbose(binding.cbVerbose.isChecked)
                 if (binding.cbSignApk.isChecked) {
                     builder.setSignerConfig(getSigningConfig())
                 }

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
     tools:context=".fragment.ApkToAABDialogFragment">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -52,14 +52,16 @@
                 android:id="@+id/tiet_aab_path"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:enabled="false" />
         </com.google.android.material.textfield.TextInputLayout>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="5dp"
             android:text="The below options are optional. Click here for more info about these options ."
             tools:ignore="HardcodedText" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_config_path"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
@@ -72,22 +74,32 @@
             app:endIconMode="custom"
             app:hintTextColor="?colorAccent"
             tools:ignore="HardcodedText">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/tiet_config_path"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:enabled="false" />
         </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_add_meta_file"
+            style="@style/Widget.MaterialComponents.Button"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            style="@style/Widget.MaterialComponents.Button"
+            android:text="Add meta file"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
             android:textColor="@color/white"
             app:backgroundTint="?colorPrimary"
             app:cornerRadius="8dp"
-            android:text="Add meta file"
+            tools:ignore="HardcodedText" />
+
+        <CheckBox
+            android:id="@+id/cb_verbose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:text="Verbose Logging"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -96,11 +108,13 @@
             android:layout_marginVertical="5dp"
             android:text="Currently the Generated AAB is not signed and thus must be signed using jarsigner before uploading to PlayStore"
             tools:ignore="HardcodedText" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_meta_files"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_apk_to_aab"
             style="@style/Widget.MaterialComponents.Button"

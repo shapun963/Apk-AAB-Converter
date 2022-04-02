@@ -10,8 +10,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
-import com.android.apksig.ApkSigner
-import com.android.apksig.ApkSignerEngine
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shapun.apkaabconverter.convert.ApkToAABConverter
 import com.shapun.apkaabconverter.convert.Logger
@@ -135,7 +133,7 @@ class ApkToAABDialogFragment : DialogFragment() {
             .setPositiveButton("Cancel", null)
             .show()
     }
-    public fun addMetaData(metaData: MetaData){
+    fun addMetaData(metaData: MetaData){
         mMetaData.add(metaData)
     }
     private fun startApkToAAB() {
@@ -161,6 +159,7 @@ class ApkToAABDialogFragment : DialogFragment() {
                         mTempOutputPath
                     )
                         .setLogger(logger)
+                        .setVerbose(binding.cbVerbose.isChecked)
                 if (mConfigUri != null) builder.setConfigFile(mConfigPath)
                 //if (mMetaDataUri != null)
                     /*

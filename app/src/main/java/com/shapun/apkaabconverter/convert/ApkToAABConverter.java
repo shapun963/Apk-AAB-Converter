@@ -2,9 +2,9 @@ package com.shapun.apkaabconverter.convert;
 
 import android.content.Context;
 
-import com.android.apksig.ApkSigner;
 import com.android.tools.build.bundletool.commands.BuildBundleCommand;
 import com.google.common.collect.ImmutableList;
+import com.shapun.apkaabconverter.model.MetaData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -27,9 +29,7 @@ public class ApkToAABConverter extends FileConverter {
     private final Path mProtoOutput;
     private final Path mBaseZip;
     private final Path mConfigPath;
-    private final String mMetaDirectoryPath;
-    private final String mMetaFileName;
-    private final Path mMetaDataPath;
+    private final List<MetaData> mMetaData;
 
     public ApkToAABConverter(Builder builder) {
         super(builder);
@@ -44,9 +44,7 @@ public class ApkToAABConverter extends FileConverter {
         mProtoOutput = Paths.get(dirPath,"proto.zip");
         mBaseZip = Paths.get(dirPath,"base.zip");
         mConfigPath = builder.configPath;
-        mMetaDirectoryPath = builder.metaDirectoryPath;
-        mMetaFileName = builder.metaFileName;
-        mMetaDataPath = builder.metaDataPath;
+        mMetaData = builder.metaData;
     }
 
     @Override
@@ -114,8 +112,7 @@ public class ApkToAABConverter extends FileConverter {
                     } else {
                         continue;
                     }
-
-                    addLog("Adding " + entry.getName() + " to base.zip");
+                    if(isVerbose())addLog("Adding " + entry.getName() + " to base.zip");
                     byte[] buffer = new byte[BUFFER_SIZE];
                     int len;
                     while ((len = zipInputStream.read(buffer)) != -1) {
@@ -136,8 +133,8 @@ public class ApkToAABConverter extends FileConverter {
             if (mConfigPath != null) {
                 builder.setBundleConfig(mConfigPath);
             }
-            if (mMetaDataPath != null) {
-                builder.addMetadataFile(mMetaDirectoryPath, mMetaFileName, mMetaDataPath);
+            for (MetaData metaData : mMetaData) {
+                builder.addMetadataFile(metaData.getDirectoryName(), metaData.getFileName(), metaData.getPath());
             }
             builder.build().execute();
             addLog("Successfully converted Apk to AAB");
@@ -149,12 +146,11 @@ public class ApkToAABConverter extends FileConverter {
 
     public static class Builder extends FileConverter.Builder<Builder> {
         private Path configPath;
-        private String metaDirectoryPath;
-        private String metaFileName;
-        private Path metaDataPath;
+        private final List<MetaData> metaData;
 
         public Builder(Context context, Path apkPath, Path outputPath) {
             super(context, apkPath, outputPath);
+            metaData = new ArrayList<>();
         }
 
         public Builder setConfigFile(Path configPath) {
@@ -162,10 +158,8 @@ public class ApkToAABConverter extends FileConverter {
             return this;
         }
 
-        public Builder addMetaDataFile(String directoryPath,String fileName,Path metaDataPath) {
-            this.metaDirectoryPath = directoryPath;
-            this.metaFileName = fileName;
-            this.metaDataPath= metaDataPath;
+        public Builder addMetaData(MetaData metaData) {
+            this.metaData.add(metaData);
             return this;
         }
 

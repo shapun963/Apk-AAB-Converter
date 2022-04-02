@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
     tools:context=".fragment.AABToApkDialogFragment">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -50,8 +50,16 @@
                 android:id="@+id/tiet_apk_path"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:enabled="false"/>
+                android:enabled="false" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <CheckBox
+            android:id="@+id/cb_verbose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:text="Verbose Logging"
+            tools:ignore="HardcodedText" />
 
         <CheckBox
             android:id="@+id/cb_sign_apk"
@@ -60,13 +68,14 @@
             android:layout_marginVertical="5dp"
             android:checked="false"
             android:text="@string/sign_apk" />
+
         <include
             android:id="@+id/sign_options"
             layout="@layout/sign_options"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginVertical="5dp" />
+            android:layout_marginVertical="5dp"
+            android:visibility="gone" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_convert_to_apk"
