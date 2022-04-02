@@ -8,7 +8,15 @@ import android.provider.OpenableColumns;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 
 public final class Utils {
@@ -18,7 +26,7 @@ public final class Utils {
         Toast.makeText(context, String.valueOf(obj), Toast.LENGTH_SHORT).show();
     }
 
-    public static String queryName(ContentResolver resolver, Uri uri) {
+    public static String queryName(@NonNull ContentResolver resolver,@NonNull Uri uri) {
         Cursor returnCursor = resolver.query(uri, null, null, null, null);
         assert returnCursor != null;
         int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
@@ -30,12 +38,23 @@ public final class Utils {
 	public static void setPadding(@NonNull View view,int value){
 		view.setPadding(value,value,value,value);
 	}
+	public static void copy(@NonNull Context ctx,@NonNull Uri uri,@NonNull Path outputPath){
+        try(InputStream is = ctx.getContentResolver().openInputStream(uri)){
+            Files.copy(is,outputPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void copy(@NonNull Context ctx,@NonNull Path inputPath,@NonNull Uri uri){
+        try(OutputStream os = ctx.getContentResolver().openOutputStream(uri)){
+            Files.copy(inputPath,os);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public static int dpToPx(Context context, int input) {
         return (int)
-                TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP,
-                        input,
-                        context.getResources().getDisplayMetrics());
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, input, context.getResources().getDisplayMetrics());
     }
 
 }

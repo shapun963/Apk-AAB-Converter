@@ -3,14 +3,14 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="app/src/main/res/layout/dialog_aab_to_apk.xml" value="0.25" />
-        <entry key="app/src/main/res/layout/dialog_apk_to_aab_converter.xml" value="0.15904232578024796" />
-        <entry key="app/src/main/res/layout/fragment_aab_to_apk.xml" value="0.19375" />
-        <entry key="app/src/main/res/layout/sign_options.xml" value="0.19375" />
+        <entry key="app/src/main/res/layout/dialog_aab_to_apk.xml" value="0.17864583333333334" />
+        <entry key="app/src/main/res/layout/dialog_add_meta_file.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/dialog_apk_to_aab.xml" value="0.103125" />
+        <entry key="app/src/main/res/layout/row_meta_data.xml" value="0.22" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="JDK" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

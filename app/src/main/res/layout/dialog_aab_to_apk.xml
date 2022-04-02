@@ -50,14 +50,22 @@
                 android:id="@+id/tiet_apk_path"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:enabled="false"
-                android:orientation="horizontal" />
+                android:enabled="false"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <CheckBox
+            android:id="@+id/cb_sign_apk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:checked="false"
+            android:text="@string/sign_apk" />
         <include
+            android:id="@+id/sign_options"
             layout="@layout/sign_options"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:layout_marginVertical="5dp" />
 
         <com.google.android.material.button.MaterialButton

@@ -25,7 +25,8 @@
             app:endIconContentDescription="Pick Apk"
             app:endIconDrawable="@drawable/ic_attach_file_24dp"
             app:endIconMode="custom"
-            app:hintTextColor="?colorAccent">
+            app:hintTextColor="?colorAccent"
+            tools:ignore="HardcodedText">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/tiet_apk_path"
@@ -44,7 +45,8 @@
             app:endIconContentDescription="Select AAB output path"
             app:endIconDrawable="@drawable/ic_attach_file_24dp"
             app:endIconMode="custom"
-            app:hintTextColor="?colorAccent">
+            app:hintTextColor="?colorAccent"
+            tools:ignore="HardcodedText">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/tiet_aab_path"
@@ -56,7 +58,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="5dp"
-            android:text="The below options are optional"/>
+            android:text="The below options are optional. Click here for more info about these options ."
+            tools:ignore="HardcodedText" />
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_config_path"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
@@ -67,35 +70,37 @@
             app:endIconContentDescription="Select Config File"
             app:endIconDrawable="@drawable/ic_attach_file_24dp"
             app:endIconMode="custom"
-            app:hintTextColor="?colorAccent">
+            app:hintTextColor="?colorAccent"
+            tools:ignore="HardcodedText">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/tiet_config_path"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:enabled="false"/>
         </com.google.android.material.textfield.TextInputLayout>
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_metadata_path"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_meta_file"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="5dp"
-            android:hint="Select MetaData File"
-            app:endIconContentDescription="Select MetaData File"
-            app:endIconDrawable="@drawable/ic_attach_file_24dp"
-            app:endIconMode="custom"
-            app:hintTextColor="?colorAccent">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/tiet_metadata_path"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:enabled="false"/>
-        </com.google.android.material.textfield.TextInputLayout>
+            android:layout_height="match_parent"
+            style="@style/Widget.MaterialComponents.Button"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
+            android:textColor="@color/white"
+            app:backgroundTint="?colorPrimary"
+            app:cornerRadius="8dp"
+            android:text="Add meta file"
+            tools:ignore="HardcodedText" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="5dp"
-            android:text="Currently the Generated AAB is not signed and thus must be signed using jarsigner before uploading to PlayStore"/>
+            android:text="Currently the Generated AAB is not signed and thus must be signed using jarsigner before uploading to PlayStore"
+            tools:ignore="HardcodedText" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_meta_files"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_apk_to_aab"
             style="@style/Widget.MaterialComponents.Button"
@@ -108,6 +113,7 @@
             android:textColor="@color/white"
             android:textSize="12sp"
             app:backgroundTint="?colorPrimary"
-            app:cornerRadius="8dp" />
+            app:cornerRadius="8dp"
+            tools:ignore="HardcodedText" />
     </LinearLayout>
 </ScrollView>
