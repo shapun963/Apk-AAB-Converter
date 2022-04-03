@@ -173,7 +173,7 @@ class ApkToAABDialogFragment : DialogFragment() {
             } catch (e: Exception) {
                 runOnUiThread { showErrorDialog(e.toString()) }
             } finally {
-                Files.deleteIfExists(mTempDir)
+                //Files.delete(mTempDir)
                 runOnUiThread {
                     //removes Progressbar
                     (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)

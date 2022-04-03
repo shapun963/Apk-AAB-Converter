@@ -21,6 +21,7 @@ import com.shapun.apkaabconverter.databinding.DialogAabToApkBinding
 import com.shapun.apkaabconverter.extension.contentResolver
 import com.shapun.apkaabconverter.extension.runOnUiThread
 import com.shapun.apkaabconverter.extension.toast
+import com.shapun.apkaabconverter.util.SignUtils
 import com.shapun.apkaabconverter.util.Utils
 import java.nio.file.Files
 import java.nio.file.Path
@@ -109,7 +110,7 @@ class AABToApkDialogFragment : DialogFragment() {
             name = name.substring(0, name.lastIndexOf("."))
             mResultLauncherSelectApkPath.launch("$name.apks")
         }
-        binding.cbSignApk.setOnCheckedChangeListener { _, value ->
+        binding.rbSignCustom.setOnCheckedChangeListener { _, value ->
             binding.signOptions.root.visibility = if (value) View.VISIBLE else View.GONE
         }
         binding.signOptions.tilKsPath.setEndIconOnClickListener {
@@ -119,7 +120,6 @@ class AABToApkDialogFragment : DialogFragment() {
     }
 
     private fun startAABToApk(){
-
         isCancelable = false
         val logger = Logger()
         ((binding.root.getChildAt(0) as ViewGroup)).apply {
@@ -140,7 +140,9 @@ class AABToApkDialogFragment : DialogFragment() {
                     )
                         .setLogger(logger)
                         .setVerbose(binding.cbVerbose.isChecked)
-                if (binding.cbSignApk.isChecked) {
+                if (binding.rgSignType.checkedRadioButtonId == binding.rbSignDebug.id) {
+                    builder.setSignerConfig(SignUtils.getDebugSigningConfiguration(requireContext()))
+                }else if(binding.rgSignType.checkedRadioButtonId == binding.rbSignCustom.id){
                     builder.setSignerConfig(getSigningConfig())
                 }
                 builder.build().start()
@@ -149,12 +151,12 @@ class AABToApkDialogFragment : DialogFragment() {
                     toast("Successfully Converted AAB to Apk")
                 }
             }catch (e: Exception){
-                runOnUiThread {showErrorDialog(e.message!!)}
+                runOnUiThread {showErrorDialog(e.toString())}
             } finally {
-                Files.deleteIfExists(mTempDir)
                 runOnUiThread{
                     (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
-                    isCancelable = true}
+                    isCancelable = true
+                }
             }
         }
     }
