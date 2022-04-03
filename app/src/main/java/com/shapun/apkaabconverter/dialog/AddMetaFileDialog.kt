@@ -40,7 +40,7 @@ class AddMetaFileDialog : DialogFragment() {
         }
         return AlertDialog.Builder(requireActivity())
             .setTitle("Add Meta file")
-            .setPositiveButton("Add") { _, _ -> }
+            .setPositiveButton("Add",null) //{ _, _ -> }
             .setView(binding.root)
             .setNegativeButton("Cancel"){_,_->dismiss()}
             .create()
