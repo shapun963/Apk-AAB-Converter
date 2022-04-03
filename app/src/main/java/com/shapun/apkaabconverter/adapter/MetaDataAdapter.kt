@@ -16,8 +16,8 @@ class MetaDataAdapter(data: List<MetaData>) : RecyclerView.Adapter<MetaDataAdapt
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.binding.tvMetaFilePath.text = "Path: "+mData[position].path.toString()
-        holder.binding.tvMetaDirectory.text= "Folder: "+mData[position].directoryName
+        holder.binding.tvMetaFilePath.text = "File Name: "+mData[position].originalFileName?:mData[position].path.toString()
+        holder.binding.tvMetaDirectory.text= "Folder: "+mData[position].directory
         holder.binding.tvMetaFileName.text = "FileName: "+mData[position].fileName
     }
 

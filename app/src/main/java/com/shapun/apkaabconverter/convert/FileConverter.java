@@ -1,6 +1,7 @@
 package com.shapun.apkaabconverter.convert;
 
 import android.content.Context;
+
 import java.nio.file.Path;
 
 public abstract class FileConverter {
@@ -8,10 +9,10 @@ public abstract class FileConverter {
 	private final Context mContext;
     private final Path mInputPath;
     private final Path mOutputPath;
-    private boolean mVerbose;
+    private final boolean mVerbose;
 	private final Logger mLogger;
     
-	public FileConverter(Builder builder){
+	public FileConverter(Builder<?> builder){
 		mInputPath = builder.inputPath;
         mOutputPath = builder.outputPath;
         mContext = builder.context;

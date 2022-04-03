@@ -151,7 +151,10 @@ class AABToApkDialogFragment : DialogFragment() {
             }catch (e: Exception){
                 runOnUiThread {showErrorDialog(e.message!!)}
             } finally {
-                runOnUiThread{ dismiss() }
+                Files.deleteIfExists(mTempDir)
+                runOnUiThread{
+                    (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
+                    isCancelable = true}
             }
         }
     }

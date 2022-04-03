@@ -1,16 +1,18 @@
 package com.shapun.apkaabconverter.fragment
 
-import android.content.ContentResolver
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.shapun.apkaabconverter.adapter.MetaDataAdapter
 import com.shapun.apkaabconverter.convert.ApkToAABConverter
 import com.shapun.apkaabconverter.convert.Logger
 import com.shapun.apkaabconverter.databinding.DialogApkToAabBinding
@@ -28,7 +30,6 @@ import java.util.concurrent.Executors
 class ApkToAABDialogFragment : DialogFragment() {
 
     // TODO: Use kotlin coroutines instead of Executors
-    // ToDo: Add option to include multiple meta data files
 
     private lateinit var binding: DialogApkToAabBinding
     private lateinit var mTempDir: Path
@@ -43,39 +44,38 @@ class ApkToAABDialogFragment : DialogFragment() {
     private val mMetaData: MutableList<MetaData> = ArrayList()
 
     private val mResultLauncherSelectApk = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) {
+        ActivityResultContracts.GetContent()) {
         if (it != null) {
             val name :String = Utils.queryName(contentResolver, it)
             if (name.endsWith(".apk")) {
                 mApkUri = it
                 binding.tietApkPath.setText(name)
             } else {
-                Utils.toast(requireContext(), "File name must end with .apk")
+                toast("File name must end with .apk or file with same name already exists")
             }
         }
     }
     private val mResultLauncherSelectAABPath =
         registerForActivityResult(ActivityResultContracts.CreateDocument()) {
             if (it != null) {
-                val name: String = Utils.queryName(getContentResolver(), it)
+                val name: String = Utils.queryName(contentResolver, it)
                 if (name.endsWith(".aab")) {
                     mAABUri = it
                     binding.tietAabPath.setText(name)
                 } else {
-                    Utils.toast(requireContext(), "Selected file is not a AAB (.aab) file")
+                    toast("Selected file is not a AAB (.aab) file")
                 }
             }
         }
     private val mResultLauncherSelectConfig =
         registerForActivityResult(ActivityResultContracts.GetContent()) {
             if (it != null) {
-                val name: String = Utils.queryName(getContentResolver(), it)
+                val name: String = Utils.queryName(contentResolver, it)
                 if (name.endsWith(".json")) {
                     mConfigUri = it
                     binding.tietConfigPath.setText(name)
                 } else {
-                    Utils.toast(requireContext(), "Selected file is not a JSON file")
+                    toast("Selected file is not a JSON file")
                 }
             }
         }
@@ -90,6 +90,7 @@ class ApkToAABDialogFragment : DialogFragment() {
         mTempOutputPath = Paths.get(dirPath, "output.aab")
         mConfigPath = Paths.get(dirPath, "BundleConfig.json")
         mMetaDataPath = Paths.get(dirPath, "meta-data")
+        binding.rvMetaFiles.adapter = MetaDataAdapter(mMetaData)
         binding.btnApkToAab.setOnClickListener {
             when {
                 mAABUri == null -> {
@@ -108,7 +109,7 @@ class ApkToAABDialogFragment : DialogFragment() {
             var name = if (mApkUri == null) {
                 "unknown.???"
             } else {
-                Utils.queryName(getContentResolver(), mApkUri!!)
+                Utils.queryName(contentResolver, mApkUri!!)
             }
             name = name.substring(0, name.lastIndexOf("."))
             mResultLauncherSelectAABPath.launch("$name.aab")
@@ -135,6 +136,8 @@ class ApkToAABDialogFragment : DialogFragment() {
     }
     fun addMetaData(metaData: MetaData){
         mMetaData.add(metaData)
+        binding.rvMetaFiles.adapter!!.notifyItemInserted(mMetaData.size-1)
+        toast(metaData.toString())
     }
     private fun startApkToAAB() {
         val logger = Logger()
@@ -161,15 +164,8 @@ class ApkToAABDialogFragment : DialogFragment() {
                         .setLogger(logger)
                         .setVerbose(binding.cbVerbose.isChecked)
                 if (mConfigUri != null) builder.setConfigFile(mConfigPath)
-                //if (mMetaDataUri != null)
-                    /*
-                    builder.addMetaDataFile(
-                        binding.tietMetadataDirectoryPathInAab.text.toString(),
-                        binding.tietMetadataNameInAab.text.toString(),
-                        mMetaDataPath
-                    )*/
-                val apkToAABConverter = builder.build()
-                apkToAABConverter.start()
+                mMetaData.forEach(builder::addMetaData)
+                builder.build().start()
                 Utils.copy(requireContext(), mTempOutputPath, mAABUri!!)
                 runOnUiThread {
                     toast("Successfully Converted AAB to Apk")
@@ -177,6 +173,7 @@ class ApkToAABDialogFragment : DialogFragment() {
             } catch (e: Exception) {
                 runOnUiThread { showErrorDialog(e.toString()) }
             } finally {
+                Files.deleteIfExists(mTempDir)
                 runOnUiThread {
                     //removes Progressbar
                     (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
@@ -185,9 +182,22 @@ class ApkToAABDialogFragment : DialogFragment() {
             }
         }
     }
-
-    private fun getContentResolver() : ContentResolver = requireContext().contentResolver
-
+    override fun onStart() {
+        super.onStart()
+        val dialog = dialog
+        if (dialog != null) {
+            val window = dialog.window
+            window!!.setBackgroundDrawable(null)
+            window.setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            val margin = Utils.dpToPx(requireContext(), 25)
+            val params = requireView().layoutParams as FrameLayout.LayoutParams
+            params.setMargins(margin, margin, margin, margin)
+        }
+    }
+   
     companion object {
         @JvmStatic
         fun newInstance():ApkToAABDialogFragment = ApkToAABDialogFragment()

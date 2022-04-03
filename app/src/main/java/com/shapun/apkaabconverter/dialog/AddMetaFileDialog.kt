@@ -40,33 +40,56 @@ class AddMetaFileDialog : DialogFragment() {
         }
         return AlertDialog.Builder(requireActivity())
             .setTitle("Add Meta file")
-            .setPositiveButton("Add") { _, _ ->
-                if(mPath == null){
-                    binding.tilMetadataPath.error= "No file selected"
-                }
-                if(binding.tietMetadataDirectoryPathInAab.text.toString().isEmpty()){
-                    binding.tietMetadataDirectoryPathInAab.error = "Directory path cant be empty"
-                    return@setPositiveButton
-                }
-                if(binding.tietMetadataNameInAab.text.toString().isEmpty()){
-                    binding.tietMetadataNameInAab.error = "Name cant be empty"
-                    return@setPositiveButton
-                }
-                if(parentFragment is AddMetaFileDialog){
-                    (parentFragment as ApkToAABDialogFragment).addMetaData(
-                        MetaData(
-                            mPath!!,
-                            binding.tietMetadataDirectoryPathInAab.text.toString() ,
-                            binding.tietMetadataNameInAab.text.toString())
-                    )
-                }
-            }
+            .setPositiveButton("Add") { _, _ -> }
             .setView(binding.root)
-            .setNegativeButton("Cancel",null)
+            .setNegativeButton("Cancel"){_,_->dismiss()}
             .create()
     }
+
+    override fun onResume() {
+        super.onResume()
+        (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener{
+            if(mPath == null){
+                binding.tilMetadataPath.error= "No file selected"
+                return@setOnClickListener
+            }
+            if(binding.tietMetadataDirectoryPathInAab.text.toString().isEmpty()){
+                binding.tilMetadataDirectoryPathInAab.error = "Directory path cant be empty"
+                return@setOnClickListener
+            }
+            if(binding.tietMetadataNameInAab.text.toString().isEmpty()){
+                binding.tilMetadataNameInAab.error = "Name cant be empty"
+                return@setOnClickListener
+            }
+            if(parentFragment is ApkToAABDialogFragment){
+                (parentFragment as ApkToAABDialogFragment).addMetaData(
+                    MetaData(
+                        binding.tietMetadataPath.text.toString(),
+                        mPath!!,
+                        binding.tietMetadataDirectoryPathInAab.text.toString() ,
+                        binding.tietMetadataNameInAab.text.toString())
+                )
+            }
+            dismiss()
+        }
+    }
     companion object {
+        private val KEY_ORIGINAL_FILE_NAME = "key_original_file_name"
+        private val KEY_PATH = "key_path"
+        private val KEY_DIRECTORY = "key_directory"
+        private val KEY_FILE_NAME = "key_file_name"
         @JvmStatic
         fun newInstance() = AddMetaFileDialog()
+        /*
+        fun newInstance(metaData: MetaData){
+            val fragment = AddMetaFileDialog()
+            val bundle = Bundle()
+            bundle.putString(KEY_ORIGINAL_FILE_NAME,metaData.originalFileName)
+            bundle.putString(KEY_PATH,metaData.path.absolutePathString())
+            bundle.putString(KEY_DIRECTORY,metaData.directory)
+            bundle.putString(KEY_FILE_NAME,metaData.fileName)
+            fragment.arguments = bundle
+        }
+         */
     }
 }

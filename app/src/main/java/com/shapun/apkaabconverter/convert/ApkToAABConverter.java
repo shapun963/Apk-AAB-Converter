@@ -15,9 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -134,7 +132,7 @@ public class ApkToAABConverter extends FileConverter {
                 builder.setBundleConfig(mConfigPath);
             }
             for (MetaData metaData : mMetaData) {
-                builder.addMetadataFile(metaData.getDirectoryName(), metaData.getFileName(), metaData.getPath());
+                builder.addMetadataFile(metaData.getDirectory(), metaData.getFileName(), metaData.getPath());
             }
             builder.build().execute();
             addLog("Successfully converted Apk to AAB");
