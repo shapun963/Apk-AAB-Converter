@@ -12,7 +12,6 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
 import androidx.fragment.app.DialogFragment
-import com.android.tools.build.bundletool.model.Password
 import com.android.tools.build.bundletool.model.SigningConfiguration
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shapun.apkaabconverter.convert.AABToApkConverter
@@ -26,7 +25,6 @@ import com.shapun.apkaabconverter.util.Utils
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 import java.util.concurrent.Executors
 
 //ToDo: Use coroutines instead of Executors
@@ -178,22 +176,20 @@ class AABToApkDialogFragment : DialogFragment() {
             throw  IllegalStateException("Key Alias cant be empty")
         }
         Utils.copy(requireContext(), mJKSUri!!,mTempJKSPath)
-        val ksPassword = if (signOptions.tietKsPassword.text.isNullOrEmpty()) {
-           Optional.empty<Password>()
-        } else {
-            Optional.of(Password.createFromStringValue("pass:"+signOptions.tietKsPassword.text.toString()))
+        if(signOptions.tietKsPassword.text.isNullOrEmpty()) {
+            throw  IllegalStateException("KeyStore password cant be empty")
         }
-        val keyPassword = if (signOptions.tietKeyPassword.text.isNullOrEmpty()) {
-            Optional.empty<Password>()
-        } else {
-            Optional.of(Password.createFromStringValue("pass:"+signOptions.tietKeyPassword.text.toString()))
+        if (signOptions.tietKeyPassword.text.isNullOrEmpty()) {
+            throw  IllegalStateException("Key Password cant be empty")
         }
-       return SigningConfiguration.extractFromKeystore(
-            mTempJKSPath,
-            binding.signOptions.tietKeyAlias.text!!.toString(),
-            ksPassword,
-            keyPassword
+        contentResolver.openInputStream(mJKSUri!!).use {
+            return SignUtils.getSigningConfig(
+                it!!,
+                binding.signOptions.tietKeyAlias.text!!.toString(),
+                signOptions.tietKsPassword.text.toString(),
+                signOptions.tietKeyPassword.text.toString()
             )
+        }
     }
 
     override fun onStart() {
