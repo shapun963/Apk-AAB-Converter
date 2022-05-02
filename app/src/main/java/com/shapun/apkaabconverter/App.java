@@ -1,5 +1,6 @@
 package com.shapun.apkaabconverter;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.Application;
 import android.app.PendingIntent;
@@ -18,16 +19,15 @@ public class App extends Application {
 	public void onCreate() {
 		  try {
 			File dir = getExternalFilesDir(null);
-			dir.mkdir();
             Runtime.getRuntime().exec("logcat -f " + dir.getAbsolutePath()+"/log.txt");
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
 		this.uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
 		Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
 			Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 			intent.putExtra("error", getStackTrace(ex));
-			PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 11111, intent, PendingIntent.FLAG_ONE_SHOT);
+			@SuppressLint("UnspecifiedImmutableFlag") PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 11111, intent, PendingIntent.FLAG_ONE_SHOT);
 			AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
 			am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, 1000, pendingIntent);
 			android.os.Process.killProcess(android.os.Process.myPid());
