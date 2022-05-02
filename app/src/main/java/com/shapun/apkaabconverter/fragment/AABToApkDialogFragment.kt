@@ -12,7 +12,6 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
 import androidx.fragment.app.DialogFragment
-import com.android.tools.build.bundletool.model.SigningConfiguration
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shapun.apkaabconverter.convert.AABToApkConverter
 import com.shapun.apkaabconverter.convert.Logger
@@ -20,7 +19,6 @@ import com.shapun.apkaabconverter.databinding.DialogAabToApkBinding
 import com.shapun.apkaabconverter.extension.contentResolver
 import com.shapun.apkaabconverter.extension.runOnUiThread
 import com.shapun.apkaabconverter.extension.toast
-import com.shapun.apkaabconverter.util.SignUtils
 import com.shapun.apkaabconverter.util.Utils
 import java.nio.file.Files
 import java.nio.file.Path
@@ -34,10 +32,8 @@ class AABToApkDialogFragment : DialogFragment() {
     private lateinit var mTempDir: Path
     private lateinit var mTempInputPath: Path
     private lateinit var mTempOutputPath: Path
-    private lateinit var mTempJKSPath: Path
     private var mAABUri: Uri? = null
     private var mApkUri: Uri? = null
-    private var mJKSUri: Uri? = null
 
     private val mResultLauncherSelectApkPath = registerForActivityResult(
         ActivityResultContracts.CreateDocument()) {
@@ -64,17 +60,6 @@ class AABToApkDialogFragment : DialogFragment() {
             }
         }
     }
-    private val mResultLauncherSelectJKS = registerForActivityResult(GetContent()) {
-        if (it != null) {
-            val name: String = Utils.queryName(contentResolver, it)
-            if (name.endsWith(".jks")) {
-                mJKSUri = it
-                binding.signOptions.tietKsPath.setText(name)
-            } else {
-                toast("Selected file is not a JKS file")
-            }
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -86,12 +71,15 @@ class AABToApkDialogFragment : DialogFragment() {
         Files.createDirectories(mTempDir)
         mTempInputPath = Paths.get(dirPath, "input.aab")
         mTempOutputPath = Paths.get(dirPath, "output.apks")
-        mTempJKSPath = Paths.get(dirPath, "temp.jks")
+        //mTempJKSPath = Paths.get(dirPath, "temp.jks")
 
         binding.btnConvertToApk.setOnClickListener {
+            val signOptionsFragment = childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
+            val signerConfigAvailable = signOptionsFragment.isSigningConfigAvailable()
             when {
                 mAABUri == null -> toast("Input can't be empty")
                 mApkUri == null -> toast("Output can't be empty")
+                !signerConfigAvailable ->{}
                 else -> startAABToApk()
             }
         }
@@ -107,12 +95,6 @@ class AABToApkDialogFragment : DialogFragment() {
             }
             name = name.substring(0, name.lastIndexOf("."))
             mResultLauncherSelectApkPath.launch("$name.apks")
-        }
-        binding.rbSignCustom.setOnCheckedChangeListener { _, value ->
-            binding.signOptions.root.visibility = if (value) View.VISIBLE else View.GONE
-        }
-        binding.signOptions.tilKsPath.setEndIconOnClickListener {
-            mResultLauncherSelectJKS.launch("*/*")
         }
         return binding.root
     }
@@ -138,11 +120,8 @@ class AABToApkDialogFragment : DialogFragment() {
                     )
                         .setLogger(logger)
                         .setVerbose(binding.cbVerbose.isChecked)
-                if (binding.rgSignType.checkedRadioButtonId == binding.rbSignDebug.id) {
-                    builder.setSignerConfig(SignUtils.getDebugSigningConfiguration(requireContext()))
-                }else if(binding.rgSignType.checkedRadioButtonId == binding.rbSignCustom.id){
-                    builder.setSignerConfig(getSigningConfig())
-                }
+                val signOptionsFragment = childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
+                builder.setSignerConfig(signOptionsFragment.getSigningConfig())
                 builder.build().start()
                 Utils.copy(requireContext(), mTempOutputPath, mApkUri!!)
                 runOnUiThread {
@@ -167,30 +146,6 @@ class AABToApkDialogFragment : DialogFragment() {
             .show()
     }
 
-    private fun getSigningConfig() : SigningConfiguration{
-        val signOptions = binding.signOptions
-        if(mJKSUri==null){
-            throw IllegalStateException("No JKS file selected")
-        }
-        if(signOptions.tietKeyAlias.text.isNullOrEmpty()){
-            throw  IllegalStateException("Key Alias cant be empty")
-        }
-        Utils.copy(requireContext(), mJKSUri!!,mTempJKSPath)
-        if(signOptions.tietKsPassword.text.isNullOrEmpty()) {
-            throw  IllegalStateException("KeyStore password cant be empty")
-        }
-        if (signOptions.tietKeyPassword.text.isNullOrEmpty()) {
-            throw  IllegalStateException("Key Password cant be empty")
-        }
-        contentResolver.openInputStream(mJKSUri!!).use {
-            return SignUtils.getSigningConfig(
-                it!!,
-                binding.signOptions.tietKeyAlias.text!!.toString(),
-                signOptions.tietKsPassword.text.toString(),
-                signOptions.tietKeyPassword.text.toString()
-            )
-        }
-    }
 
     override fun onStart() {
         super.onStart()

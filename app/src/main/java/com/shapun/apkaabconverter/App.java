@@ -23,19 +23,16 @@ public class App extends Application {
         } catch (IOException e) {
         }
 		this.uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread thread, Throwable ex) {
-				Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-				intent.putExtra("error", getStackTrace(ex));
-				PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 11111, intent, PendingIntent.FLAG_ONE_SHOT);
-				AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-				am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, 1000, pendingIntent);
-				android.os.Process.killProcess(android.os.Process.myPid());
-				System.exit(2);
-				uncaughtExceptionHandler.uncaughtException(thread, ex);
-			}
+		Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+			Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+			intent.putExtra("error", getStackTrace(ex));
+			PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 11111, intent, PendingIntent.FLAG_ONE_SHOT);
+			AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+			am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, 1000, pendingIntent);
+			android.os.Process.killProcess(android.os.Process.myPid());
+			System.exit(2);
+			uncaughtExceptionHandler.uncaughtException(thread, ex);
 		});
 		
 		super.onCreate();

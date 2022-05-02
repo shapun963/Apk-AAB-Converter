@@ -60,37 +60,12 @@
             android:layout_marginVertical="5dp"
             android:text="Verbose Logging"
             tools:ignore="HardcodedText" />
-        <RadioGroup
-            android:id="@+id/rg_sign_type"
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_sign_options"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="5dp"
-            android:padding="5dp"
-            android:orientation="horizontal"
-            android:checkedButton="@id/rb_sign_debug">
-            <RadioButton
-                android:id="@+id/rb_sign_debug"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sign with debug key"
-                android:layout_weight="1"
-                tools:ignore="HardcodedText" />
-            <RadioButton
-                android:id="@+id/rb_sign_custom"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sign with custom key"
-                android:layout_weight="1"
-                tools:ignore="HardcodedText" />
-        </RadioGroup>
-        <include
-            android:id="@+id/sign_options"
-            layout="@layout/sign_options"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="5dp"
-            android:visibility="gone" />
-
+            android:tag="SignOptionsFragment"
+            android:name="com.shapun.apkaabconverter.fragment.SignOptionsFragment"/>
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_convert_to_apk"
             style="@style/Widget.MaterialComponents.Button"

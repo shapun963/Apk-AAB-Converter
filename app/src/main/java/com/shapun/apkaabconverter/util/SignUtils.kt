@@ -5,12 +5,9 @@ import com.android.tools.build.bundletool.model.SignerConfig
 import com.android.tools.build.bundletool.model.SigningConfiguration
 import com.android.tools.build.bundletool.model.exceptions.CommandExecutionException
 import com.google.common.collect.ImmutableList
-import java.io.IOException
 import java.io.InputStream
 import java.security.KeyStore
-import java.security.KeyStoreException
 import java.security.PrivateKey
-import java.security.UnrecoverableKeyException
 import java.security.cert.Certificate
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
@@ -32,25 +29,8 @@ object SignUtils {
     }
 
     fun getKeyStore(inputStream: InputStream, password: String): KeyStore {
-        val keystore: KeyStore = try {
-            KeyStore.getInstance("PKCS12")
-        } catch (e: KeyStoreException) {
-            throw CommandExecutionException.builder()
-                .withCause(e)
-                .withInternalMessage("Unable to build a keystore instance: " + e.message)
-                .build()
-        }
-        try {
-            keystore.load(inputStream, password.toCharArray())
-        } catch (e: IOException) {
-            if (e.cause is UnrecoverableKeyException) {
-                throw CommandExecutionException.builder()
-                    .withInternalMessage("Incorrect keystore password.")
-                    .withCause(e)
-                    .build()
-            }
-            throw e
-        }
+        val keystore: KeyStore = KeyStore.getInstance("PKCS12")
+        keystore.load(inputStream, password.toCharArray())
         return keystore
     }
 
@@ -61,14 +41,14 @@ object SignUtils {
         keyPassword: String
     ): SigningConfiguration {
         return getSigningConfig(
-            getKeyStore(inputStream, keystorePassword), keyAlias, keyPassword.toCharArray()
+            getKeyStore(inputStream, keystorePassword), keyAlias, keyPassword
         )
     }
 
     fun getSigningConfig(
-        keystore: KeyStore, keyAlias: String, keyPassword: CharArray
+        keystore: KeyStore, keyAlias: String, keyPassword: String
     ): SigningConfiguration {
-        val privateKey = keystore.getKey(keyAlias, keyPassword) as PrivateKey
+        val privateKey = keystore.getKey(keyAlias, keyPassword.toCharArray()) as PrivateKey
         val certChain = keystore.getCertificateChain(keyAlias)
             ?: throw CommandExecutionException.builder()
                 .withInternalMessage("No key found with alias '%s' in keystore.", keyAlias)
