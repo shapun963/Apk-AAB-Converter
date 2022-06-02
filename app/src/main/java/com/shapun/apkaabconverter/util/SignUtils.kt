@@ -4,6 +4,7 @@ import android.content.Context
 import com.android.apksig.ApkSigner
 import com.android.tools.build.bundletool.model.exceptions.CommandExecutionException
 import com.google.common.collect.ImmutableList
+import sun.security.pkcs.PKCS8Key
 import java.io.InputStream
 import java.security.KeyStore
 import java.security.PrivateKey
@@ -18,9 +19,7 @@ object SignUtils {
     fun getDebugSignerConfig(context: Context): ApkSigner.SignerConfig {
         val assets = context.assets
         val key = assets.open("testkey.pk8").use {
-            (Class.forName("sun.security.pkcs.PKCS8Key").newInstance() as PrivateKey).apply {
-                this.javaClass.getMethod("decode", InputStream::class.java).invoke(this, it)
-            }
+            PKCS8Key().apply {decode(it)}
         }
         val cert = assets.open("testkey.x509.pem").use {
             (CertificateFactory.getInstance("X.509").generateCertificate(it) as X509Certificate)
