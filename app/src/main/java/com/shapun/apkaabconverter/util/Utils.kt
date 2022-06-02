@@ -25,6 +25,7 @@ import java.util.*
 import javax.security.auth.DestroyFailedException
 
 object Utils {
+
     fun toast(context: Context?, obj: Any) {
         Toast.makeText(context, obj.toString(), Toast.LENGTH_SHORT).show()
     }

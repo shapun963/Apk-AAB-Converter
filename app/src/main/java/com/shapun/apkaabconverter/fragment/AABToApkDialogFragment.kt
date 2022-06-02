@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shapun.apkaabconverter.convert.AABToApkConverter
 import com.shapun.apkaabconverter.convert.Logger
@@ -20,10 +21,13 @@ import com.shapun.apkaabconverter.extension.contentResolver
 import com.shapun.apkaabconverter.extension.runOnUiThread
 import com.shapun.apkaabconverter.extension.toast
 import com.shapun.apkaabconverter.util.Utils
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.Executors
 
 //ToDo: Use coroutines instead of Executors
 class AABToApkDialogFragment : DialogFragment() {
@@ -34,9 +38,10 @@ class AABToApkDialogFragment : DialogFragment() {
     private lateinit var mTempOutputPath: Path
     private var mAABUri: Uri? = null
     private var mApkUri: Uri? = null
-
+    private var mLogger: Logger? = null
     private val mResultLauncherSelectApkPath = registerForActivityResult(
-        ActivityResultContracts.CreateDocument()) {
+        ActivityResultContracts.CreateDocument()
+    ) {
         if (it != null) {
             val contentResolver = requireContext().contentResolver
             val name = Utils.queryName(contentResolver, it)
@@ -46,7 +51,6 @@ class AABToApkDialogFragment : DialogFragment() {
             } else {
                 toast("File name must end with .apks")
             }
-
         }
     }
     private val mResultLauncherSelectAAB = registerForActivityResult(GetContent()) {
@@ -66,20 +70,16 @@ class AABToApkDialogFragment : DialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = DialogAabToApkBinding.inflate(layoutInflater, container, false)
-        val dirPath = requireContext().cacheDir!!.absolutePath +"/temp"
+        val dirPath = requireContext().cacheDir!!.absolutePath + "/temp"
         mTempDir = Paths.get(dirPath)
         Files.createDirectories(mTempDir)
         mTempInputPath = Paths.get(dirPath, "input.aab")
         mTempOutputPath = Paths.get(dirPath, "output.apks")
-        //mTempJKSPath = Paths.get(dirPath, "temp.jks")
 
         binding.btnConvertToApk.setOnClickListener {
-            val signOptionsFragment = childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
-            val signerConfigAvailable = signOptionsFragment.isSigningConfigAvailable()
             when {
                 mAABUri == null -> toast("Input can't be empty")
                 mApkUri == null -> toast("Output can't be empty")
-                !signerConfigAvailable ->{}
                 else -> startAABToApk()
             }
         }
@@ -99,43 +99,40 @@ class AABToApkDialogFragment : DialogFragment() {
         return binding.root
     }
 
-    private fun startAABToApk(){
-        isCancelable = false
-        val logger = Logger()
-        ((binding.root.getChildAt(0) as ViewGroup)).apply {
-            removeAllViews()
-            addView(ProgressBar(requireContext()))
-            val logTv = TextView(requireContext())
-            addView(logTv)
-            logger.setLogListener { runOnUiThread { logTv.append(it)} }
-        }
-        Executors.newSingleThreadExecutor().execute {
-            try {
-                Utils.copy(requireContext(), mAABUri!!, mTempInputPath)
-                val builder =
-                    AABToApkConverter.Builder(
-                        requireContext(),
-                        mTempInputPath,
-                        mTempOutputPath
-                    )
-                        .setLogger(logger)
-                        .setVerbose(binding.cbVerbose.isChecked)
-                val signOptionsFragment = childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
-                builder.setSignerConfig(signOptionsFragment.getSigningConfig())
-                builder.build().start()
-                Utils.copy(requireContext(), mTempOutputPath, mApkUri!!)
-                runOnUiThread {
-                    toast("Successfully Converted AAB to Apk")
-                }
-            }catch (e: Exception){
-                runOnUiThread {showErrorDialog(e.toString())}
-            } finally {
-                runOnUiThread{
-                    (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
-                    isCancelable = true
-                }
+    private fun startAABToApk() {
+        val errorHandler = CoroutineExceptionHandler { _, throwable -> showErrorDialog(throwable.toString())}
+            lifecycleScope.launch(errorHandler){
+            isCancelable = false
+                mLogger = Logger()
+            ((binding.root.getChildAt(0) as ViewGroup)).apply {
+                removeAllViews()
+                addView(ProgressBar(requireContext()))
+                val logTv = TextView(requireContext())
+                addView(logTv)
+                mLogger!!.setLogListener { runOnUiThread { logTv.append(it) } }
             }
+            convert()
+            toast("Successfully Converted AAB to Apk")
+            (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
+            isCancelable = true
         }
+    }
+
+    private suspend fun convert() = withContext(Dispatchers.Default) {
+            Utils.copy(requireContext(), mAABUri!!, mTempInputPath)
+            val builder =
+                AABToApkConverter.Builder(
+                    requireContext(),
+                    mTempInputPath,
+                    mTempOutputPath
+                )
+                    .setLogger(mLogger)
+                    .setVerbose(binding.cbVerbose.isChecked)
+            val signOptionsFragment =
+                childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
+            builder.setSignerConfig(signOptionsFragment.getSigningConfig())
+            builder.build().start()
+            Utils.copy(requireContext(), mTempOutputPath, mApkUri!!)
     }
 
     private fun showErrorDialog(error: String) {

@@ -2,47 +2,64 @@ package com.shapun.apkaabconverter.convert;
 
 import android.content.Context;
 
+import com.android.apksig.ApkSigner;
+import com.android.apksig.apk.ApkFormatException;
 import com.android.tools.build.bundletool.commands.BuildBundleCommand;
 import com.google.common.collect.ImmutableList;
 import com.shapun.apkaabconverter.model.MetaData;
+import com.shapun.apkaabconverter.zipalign.ZipAligner;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class ApkToAABConverter extends FileConverter {
+
     private static final int BUFFER_SIZE = 1024 * 2;
     private final File AAPT2Binary;
     private final Path mProtoOutput;
     private final Path mBaseZip;
     private final Path mConfigPath;
+    private final Path mNonSignedAAB;
+    private final Path mSignedAAB;
+    private final ApkSigner.SignerConfig mSignerConfig;
+    private final boolean mAlign ;
     private final List<MetaData> mMetaData;
 
     public ApkToAABConverter(Builder builder) {
         super(builder);
         AAPT2Binary = new File(getContext().getApplicationInfo().nativeLibraryDir, "libaapt2.so");
-        String dirPath = getContext().getExternalCacheDir().getAbsolutePath()+File.separator+"temp";
+        String dirPath = getContext().getCacheDir().getAbsolutePath()+File.separator+"temp";
         Path mTempDir = Paths.get(dirPath);
         try {
             Files.createDirectories(mTempDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        mProtoOutput = Paths.get(dirPath,"proto.zip");
-        mBaseZip = Paths.get(dirPath,"base.zip");
+        mProtoOutput = mTempDir.resolve("proto.zip");
+        mBaseZip = mTempDir.resolve("base.zip");
+        mNonSignedAAB = mTempDir.resolve("non-signed.aab");
+        mSignedAAB = mTempDir.resolve("signed.aab");
+        mSignerConfig = builder.signerConfig;
         mConfigPath = builder.configPath;
         mMetaData = builder.metaData;
+        mAlign =  builder.align;
     }
 
     @Override
@@ -50,6 +67,8 @@ public class ApkToAABConverter extends FileConverter {
         createProtoFormatZip();
         createBaseZip();
         buildAab();
+        sign();
+        if(mAlign)align();
     }
 
     private void createProtoFormatZip() throws Exception {
@@ -82,8 +101,9 @@ public class ApkToAABConverter extends FileConverter {
 
     private void createBaseZip() throws IOException {
         addLog("Creating base.zip");
-        try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(mProtoOutput.toFile()))) {
-            try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(mBaseZip.toFile()))) {
+        try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(mProtoOutput.toFile()));
+                ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(mBaseZip.toFile()));
+                ZipFile inputZip = new ZipFile(mProtoOutput.toFile())) {
                 ZipEntry entry;
                 while ((entry = zipInputStream.getNextEntry()) != null) {
                     if (entry.getName().endsWith(".dex") && entry.getName().startsWith("classes")) {
@@ -93,13 +113,14 @@ public class ApkToAABConverter extends FileConverter {
                         zipOutputStream.putNextEntry(
                                 new ZipEntry("manifest" + File.separator + entry.getName()));
                     } else if (entry.getName().startsWith("res" + File.separator)) {
-                        zipOutputStream.putNextEntry(new ZipEntry(entry));
+                        zipOutputStream.putNextEntry(new ZipEntry(entry.getName()));
                     } else if (entry.getName().startsWith("lib" + File.separator)) {
-                        zipOutputStream.putNextEntry(new ZipEntry(entry));
+                        zipOutputStream.putNextEntry(new ZipEntry(entry.getName()));
                     } else if (entry.getName().equals("resources.pb")) {
-                        zipOutputStream.putNextEntry(new ZipEntry(entry));
+                        zipOutputStream.putNextEntry(new ZipEntry(entry.getName()));
                     } else if (entry.getName().startsWith("assets" + File.separator)) {
-                        zipOutputStream.putNextEntry(new ZipEntry(entry));
+                        zipOutputStream.putNextEntry(new ZipEntry(entry.getName()));
+
                         // the META-INF folder may contain non-signature-related resources
                         // as well, so we check if the entry doesn't point to a signature
                         // file before adding it
@@ -110,15 +131,16 @@ public class ApkToAABConverter extends FileConverter {
                     } else {
                         continue;
                     }
-                    if(isVerbose())addLog("Adding " + entry.getName() + " to base.zip");
+                    if(isVerbose())addLog("adding "+entry.getName()+" to proto to base.zip");
                     byte[] buffer = new byte[BUFFER_SIZE];
                     int len;
-                    while ((len = zipInputStream.read(buffer)) != -1) {
-                        zipOutputStream.write(buffer, 0, len);
+                    try(InputStream is = inputZip.getInputStream(new ZipEntry(entry.getName()))) {
+                        while ((len = is.read(buffer)) != -1) {
+                            zipOutputStream.write(buffer, 0, len);
+                        }
                     }
                 }
             }
-        }
     }
 
     private void buildAab(){
@@ -126,7 +148,7 @@ public class ApkToAABConverter extends FileConverter {
         try {
             BuildBundleCommand.Builder builder = BuildBundleCommand.builder()
                     .setModulesPaths(ImmutableList.of(mBaseZip))
-                    .setOutputPath(getOutputPath())
+                    .setOutputPath(mNonSignedAAB)
                     .setOverwriteOutput(true);
             if (mConfigPath != null) {
                 builder.setBundleConfig(mConfigPath);
@@ -142,9 +164,32 @@ public class ApkToAABConverter extends FileConverter {
         }
     }
 
+    public void sign() throws ApkFormatException, IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+        if(mSignerConfig!=null) {
+            addLog("Signing AAB");
+            new ApkSigner.Builder(ImmutableList.of(mSignerConfig))
+                    .setInputApk(mNonSignedAAB.toFile())
+                    .setOutputApk(mAlign?mSignedAAB.toFile():getOutputPath().toFile())
+                    //ToDo: use ApkUtils.getMinSdkVersion()
+                    .setMinSdkVersion(1)//ApkUtils.getMinimumSdkVersion(getInputPath()))
+                    .build()
+                    .sign();
+        }else{
+            addLog("No signer config provided, skipping signing");
+        }
+    }
+    public void align(){
+        addLog("Aligning aab");
+        ZipAligner aligner = new ZipAligner((mSignerConfig==null?mNonSignedAAB:mSignedAAB),getOutputPath());
+        aligner.setVerbose(isVerbose());
+        aligner.align();
+    }
+
     public static class Builder extends FileConverter.Builder<Builder> {
         private Path configPath;
         private final List<MetaData> metaData;
+        private ApkSigner.SignerConfig signerConfig;
+        private boolean align = false;
 
         public Builder(Context context, Path apkPath, Path outputPath) {
             super(context, apkPath, outputPath);
@@ -160,7 +205,14 @@ public class ApkToAABConverter extends FileConverter {
             this.metaData.add(metaData);
             return this;
         }
-
+        public Builder align(){
+            this.align= true;
+            return this;
+        }
+        public Builder setSignerConfig(ApkSigner.SignerConfig signerConfig){
+            this.signerConfig = signerConfig;
+            return this;
+        }
         @Override
         public ApkToAABConverter build() {
             return new ApkToAABConverter(this);

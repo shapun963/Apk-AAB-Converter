@@ -15,9 +15,12 @@ import java.io.Writer;
 
 public class App extends Application {
 	private Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
+	@SuppressLint("StaticFieldLeak")
+	public static Context context;
 	@Override
 	public void onCreate() {
-		  try {
+		context = this;
+		try {
 			File dir = getExternalFilesDir(null);
             Runtime.getRuntime().exec("logcat -f " + dir.getAbsolutePath()+"/log.txt");
         } catch (IOException ignored) {

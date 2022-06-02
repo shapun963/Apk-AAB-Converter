@@ -54,12 +54,11 @@
                 android:layout_height="wrap_content"
                 android:enabled="false" />
         </com.google.android.material.textfield.TextInputLayout>
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="5dp"
-            android:text="The below options are optional. Click here for more info about these options ."
+            android:text="The options below are optional. Click here for more info about these options ."
             tools:ignore="HardcodedText" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -93,7 +92,14 @@
             app:backgroundTint="?colorPrimary"
             app:cornerRadius="8dp"
             tools:ignore="HardcodedText" />
-
+        <CheckBox
+            android:id="@+id/cb_align"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:checked="true"
+            android:text="Align AAB"
+            tools:ignore="HardcodedText" />
         <CheckBox
             android:id="@+id/cb_verbose"
             android:layout_width="wrap_content"
@@ -102,19 +108,17 @@
             android:text="Verbose Logging"
             tools:ignore="HardcodedText" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="5dp"
-            android:text="Currently the Generated AAB is not signed and thus must be signed using jarsigner before uploading to PlayStore"
-            tools:ignore="HardcodedText" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_meta_files"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_sign_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:tag="SignOptionsFragment"
+            android:name="com.shapun.apkaabconverter.fragment.SignOptionsFragment"/>
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_apk_to_aab"
             style="@style/Widget.MaterialComponents.Button"

@@ -11,6 +11,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shapun.apkaabconverter.adapter.MetaDataAdapter
 import com.shapun.apkaabconverter.convert.ApkToAABConverter
@@ -22,14 +23,15 @@ import com.shapun.apkaabconverter.extension.runOnUiThread
 import com.shapun.apkaabconverter.extension.toast
 import com.shapun.apkaabconverter.model.MetaData
 import com.shapun.apkaabconverter.util.Utils
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.Executors
 
 class ApkToAABDialogFragment : DialogFragment() {
-
-    // TODO: Use kotlin coroutines instead of Executors
 
     private lateinit var binding: DialogApkToAabBinding
     private lateinit var mTempDir: Path
@@ -42,11 +44,12 @@ class ApkToAABDialogFragment : DialogFragment() {
     private var mConfigUri: Uri? = null
     private var mMetaDataUri: Uri? = null
     private val mMetaData: MutableList<MetaData> = ArrayList()
-
+    private var mLogger: Logger? = null
     private val mResultLauncherSelectApk = registerForActivityResult(
-        ActivityResultContracts.GetContent()) {
+        ActivityResultContracts.GetContent()
+    ) {
         if (it != null) {
-            val name :String = Utils.queryName(contentResolver, it)
+            val name: String = Utils.queryName(contentResolver, it)
             if (name.endsWith(".apk")) {
                 mApkUri = it
                 binding.tietApkPath.setText(name)
@@ -81,7 +84,11 @@ class ApkToAABDialogFragment : DialogFragment() {
         }
 
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = DialogApkToAabBinding.inflate(layoutInflater, container, false)
         val dirPath = requireContext().cacheDir.absolutePath + "/temp"
         mTempDir = Paths.get(dirPath)
@@ -122,11 +129,13 @@ class ApkToAABDialogFragment : DialogFragment() {
         binding.tilConfigPath.setEndIconOnClickListener {
             mResultLauncherSelectConfig.launch("*/*")
         }
-       binding.btnAddMetaFile.setOnClickListener {
-           AddMetaFileDialog.newInstance().show(childFragmentManager,AddMetaFileDialog::class.simpleName)
-       }
+        binding.btnAddMetaFile.setOnClickListener {
+            AddMetaFileDialog.newInstance()
+                .show(childFragmentManager, AddMetaFileDialog::class.simpleName)
+        }
         return binding.root
     }
+
     private fun showErrorDialog(error: String) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Failed to convert file")
@@ -134,54 +143,63 @@ class ApkToAABDialogFragment : DialogFragment() {
             .setPositiveButton("Cancel", null)
             .show()
     }
-    fun addMetaData(metaData: MetaData){
+
+    fun addMetaData(metaData: MetaData) {
         mMetaData.add(metaData)
-        binding.rvMetaFiles.adapter!!.notifyItemInserted(mMetaData.size-1)
+        binding.rvMetaFiles.adapter!!.notifyItemInserted(mMetaData.size - 1)
         toast(metaData.toString())
     }
+
     private fun startApkToAAB() {
-        val logger = Logger()
-        ((binding.root.getChildAt(0) as ViewGroup)).apply {
-            removeAllViews()
-            addView(ProgressBar(requireContext()))
-            val logTv = TextView(requireContext())
-            addView(logTv)
-            logger.setLogListener { log ->
-                runOnUiThread { logTv.append(log + "\n") }
+        val errorHandler =
+            CoroutineExceptionHandler { _, throwable ->
+                mLogger!!.add(throwable.toString())
+                showErrorDialog(throwable.toString())
+                (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
+                isCancelable = true
             }
+        lifecycleScope.launch(errorHandler) {
+            isCancelable = false
+            ((binding.root.getChildAt(0) as ViewGroup)).apply {
+                removeAllViews()
+                addView(ProgressBar(requireContext()))
+                val logTv = TextView(requireContext())
+                addView(logTv)
+                mLogger =  Logger()
+                mLogger!!.setLogListener { log ->
+                    runOnUiThread { logTv.append(log + "\n") }
+                }
+            }
+            convert()
+            toast("Successfully Converted AAB to Apk")
+            //removes Progressbar
+            (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
+            isCancelable = true
         }
-        Executors.newSingleThreadExecutor().execute{
+    }
+
+    private suspend fun convert() = withContext(Dispatchers.Default) {
             Utils.copy(requireContext(), mApkUri!!, mTempInputPath)
             mConfigUri?.let { Utils.copy(requireContext(), it, mConfigPath) }
             mMetaDataUri?.let { Utils.copy(requireContext(), it, mMetaDataPath) }
-            try {
-                val builder =
-                    ApkToAABConverter.Builder(
-                        requireContext(),
-                        mTempInputPath,
-                        mTempOutputPath
-                    )
-                        .setLogger(logger)
-                        .setVerbose(binding.cbVerbose.isChecked)
-                if (mConfigUri != null) builder.setConfigFile(mConfigPath)
-                mMetaData.forEach(builder::addMetaData)
-                builder.build().start()
+            ApkToAABConverter.Builder(
+                requireContext(),
+                mTempInputPath,
+                mTempOutputPath
+            ).apply {
+                setLogger(mLogger)
+                setVerbose(binding.cbVerbose.isChecked)
+                if (mConfigUri != null) setConfigFile(mConfigPath)
+                mMetaData.forEach(this::addMetaData)
+                val signOptionsFragment =
+                    childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
+                setSignerConfig(signOptionsFragment.getSigningConfig())
+                if (binding.cbAlign.isChecked) align()
+                build().start()
                 Utils.copy(requireContext(), mTempOutputPath, mAABUri!!)
-                runOnUiThread {
-                    toast("Successfully Converted AAB to Apk")
-                }
-            } catch (e: Exception) {
-                runOnUiThread { showErrorDialog(e.toString()) }
-            } finally {
-                //Files.delete(mTempDir)
-                runOnUiThread {
-                    //removes Progressbar
-                    (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
-                    isCancelable = true
-                }
             }
-        }
     }
+
     override fun onStart() {
         super.onStart()
         val dialog = dialog
@@ -197,9 +215,9 @@ class ApkToAABDialogFragment : DialogFragment() {
             params.setMargins(margin, margin, margin, margin)
         }
     }
-   
+
     companion object {
         @JvmStatic
-        fun newInstance():ApkToAABDialogFragment = ApkToAABDialogFragment()
+        fun newInstance(): ApkToAABDialogFragment = ApkToAABDialogFragment()
     }
 }
