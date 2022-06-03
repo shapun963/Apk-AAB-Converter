@@ -14,4 +14,3 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Apk AAB Converter"
 include ':app'
-include ':stub'
