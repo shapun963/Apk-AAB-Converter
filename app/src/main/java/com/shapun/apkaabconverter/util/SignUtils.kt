@@ -2,14 +2,12 @@ package com.shapun.apkaabconverter.util
 
 import android.content.Context
 import com.android.apksig.ApkSigner
-import com.android.tools.build.bundletool.model.exceptions.CommandExecutionException
 import com.google.common.collect.ImmutableList
 import java.io.InputStream
 import java.security.KeyFactory
 import java.security.KeyStore
 import java.security.NoSuchAlgorithmException
 import java.security.PrivateKey
-import java.security.cert.Certificate
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.security.spec.InvalidKeySpecException
@@ -83,14 +81,16 @@ object SignUtils {
     fun getSignerConfig(
         keystore: KeyStore, keyAlias: String, keyPassword: String
     ): ApkSigner.SignerConfig {
-        val privateKey = keystore.getKey(keyAlias, keyPassword.toCharArray()) as PrivateKey
-        val certChain = keystore.getCertificateChain(keyAlias)
-            ?: throw CommandExecutionException.builder()
+        val privateKey = keystore.getKey(keyAlias, KeyStore.PasswordProtection(keyPassword.toCharArray()).password) as PrivateKey
+        val certChain = keystore.getCertificateChain(keyAlias)?:throw RuntimeException("No key found with alias '%s' in keystore.")
+           /* ?: throw CommandExecutionException.builder()
                 .withInternalMessage("No key found with alias '%s' in keystore.", keyAlias)
                 .build()
-        val certificates = Arrays.stream(certChain).map { c: Certificate? -> c as X509Certificate? }
+            */
+        val certificates = Arrays.stream(certChain).map { it as X509Certificate }
             .collect(ImmutableList.toImmutableList())
         return ApkSigner.SignerConfig.Builder(SIGNER_NAME, privateKey, certificates)
             .build()
     }
+
 }

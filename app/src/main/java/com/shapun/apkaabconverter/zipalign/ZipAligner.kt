@@ -15,6 +15,7 @@ class ZipAligner(inputPath: Path, outputPath: Path) {
     private val mInputPath: Path = inputPath
     private val mOutputPath:Path = outputPath
     private var mVerbose = false
+    private var mLogs: String = ""
 
     fun setVerbose(verbose: Boolean) {
         mVerbose = verbose
@@ -38,8 +39,11 @@ class ZipAligner(inputPath: Path, outputPath: Path) {
             errorList.add(scanner.nextLine())
         }
         process.waitFor()
+        mLogs = errorList.joinToString("\n")
         if(errorList.stream().anyMatch{it.startsWith("ERROR:")}) {
             throw Exception(errorList.stream().collect(Collectors.joining("\n")))
         }
     }
+
+    fun getLogs() = mLogs
 }

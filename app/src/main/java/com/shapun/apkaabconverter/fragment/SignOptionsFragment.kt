@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.android.apksig.ApkSigner
 import com.shapun.apkaabconverter.databinding.FragmentSignOptionsBinding
 import com.shapun.apkaabconverter.extension.contentResolver
+import com.shapun.apkaabconverter.extension.toast
 import com.shapun.apkaabconverter.util.SignUtils
 import com.shapun.apkaabconverter.util.Utils
 import kotlinx.coroutines.*
@@ -50,6 +51,7 @@ class SignOptionsFragment : Fragment() {
         } else {
             binding.tilAliasPassword.error = throwable.toString()
         }
+        toast("error")
     }
     private val mResultLauncherSelectApk = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -69,6 +71,8 @@ class SignOptionsFragment : Fragment() {
         mDebugSigner = lifecycleScope.async{SignUtils.getDebugSignerConfig(requireContext())}
         binding = FragmentSignOptionsBinding.inflate(layoutInflater, container, false)
         binding.llCustomKsOptions.visibility = View.GONE
+        binding.spinnerAliases.visibility = View.GONE
+        binding.tilAliasPassword.visibility = View.GONE
         binding.tilKsPath.setEndIconOnClickListener {
             mResultLauncherSelectApk.launch("*/*")
         }
@@ -78,13 +82,14 @@ class SignOptionsFragment : Fragment() {
         }
         binding.tietKsPassword.doAfterTextChanged {
             mGetKeyStoreJob?.cancel()
-            binding.tilKsPath.error = null
+            binding.tilKsPassword.error = null
             binding.spinnerAliases.visibility = View.GONE
             binding.tilAliasPassword.visibility = View.GONE
             mGetKeyStoreJob = lifecycleScope.launch(mKSExceptionHandler) {
                 mKeyStore = getKeyStore()
                 binding.spinnerAliases.visibility = View.VISIBLE
                 binding.tilAliasPassword.visibility = View.VISIBLE
+                binding.tilKsPath.error = null
                 binding.spinnerAliases.adapter = ArrayAdapter(
                     requireContext(),
                     android.R.layout.simple_list_item_1,
@@ -94,10 +99,11 @@ class SignOptionsFragment : Fragment() {
         }
         binding.tietAliasPassword.doAfterTextChanged {
             mGetSignerConfigJob?.cancel()
-            mCustomSignerConfig = null
             binding.tilAliasPassword.error = null
-            mGetSignerConfigJob = lifecycleScope.launch (mSignerConfigExceptionHandler){
+            mCustomSignerConfig = null
+            mGetSignerConfigJob = lifecycleScope.launch(mSignerConfigExceptionHandler){
                 mCustomSignerConfig = getCustomSignerConfig()
+                binding.tilAliasPassword.error = null
             }
         }
         return binding.root
@@ -110,15 +116,14 @@ class SignOptionsFragment : Fragment() {
             }
     }
 
-    private suspend fun getCustomSignerConfig():ApkSigner.SignerConfig{
-        return withContext(Dispatchers.Default){
+    private suspend fun getCustomSignerConfig(): ApkSigner.SignerConfig = withContext(Dispatchers.Default){
             SignUtils.getSignerConfig(
                 mKeyStore!!,
                 binding.spinnerAliases.selectedItem as String,
                 binding.tietAliasPassword.text.toString()
             )
-        }
     }
+
     suspend fun getSigningConfig(): ApkSigner.SignerConfig?{
         return if (binding.rgSignType.checkedRadioButtonId == binding.rbSignDebug.id) {
             mDebugSigner.await()

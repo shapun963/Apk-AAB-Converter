@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import com.android.bundle.Config
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shapun.apkaabconverter.adapter.MetaDataAdapter
 import com.shapun.apkaabconverter.convert.ApkToAABConverter
@@ -31,6 +32,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
+//ToDo: implement default gradle configs fully
 class ApkToAABDialogFragment : DialogFragment() {
 
     private lateinit var binding: DialogApkToAabBinding
@@ -45,6 +47,40 @@ class ApkToAABDialogFragment : DialogFragment() {
     private var mMetaDataUri: Uri? = null
     private val mMetaData: MutableList<MetaData> = ArrayList()
     private var mLogger: Logger? = null
+    //default values AGP uses
+    private val mFilesNotToCompress = listOf(
+        "**/*.3g2",
+        "**/*.3gp",
+        "**/*.3gpp",
+        "**/*.3gpp2",
+        "**/*.aac",
+        "**/*.amr",
+        "**/*.awb",
+        "**/*.gif",
+        "**/*.imy",
+        "**/*.jet",
+        "**/*.jpeg",
+        "**/*.jpg",
+        "**/*.m4a",
+        "**/*.m4v",
+        "**/*.mid",
+        "**/*.midi",
+        "**/*.mkv",
+        "**/*.mp2",
+        "**/*.mp3",
+        "**/*.mp4",
+        "**/*.mpeg",
+        "**/*.mpg",
+        "**/*.ogg",
+        "**/*.png",
+        "**/*.rtttl",
+        "**/*.smf",
+        "**/*.wav",
+        "**/*.webm",
+        "**/*.wma",
+        "**/*.wmv",
+        "**/*.xmf"
+    )
     private val mResultLauncherSelectApk = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) {
@@ -189,15 +225,32 @@ class ApkToAABDialogFragment : DialogFragment() {
             ).apply {
                 setLogger(mLogger)
                 setVerbose(binding.cbVerbose.isChecked)
-                if (mConfigUri != null) setConfigFile(mConfigPath)
-                mMetaData.forEach(this::addMetaData)
-                val signOptionsFragment =
-                    childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
-                setSignerConfig(signOptionsFragment.getSigningConfig())
-                if (binding.cbAlign.isChecked) align()
-                build().start()
-                Utils.copy(requireContext(), mTempOutputPath, mAABUri!!)
+                setBundleConfig(getBundleConfig())
+                    mMetaData.forEach(this::addMetaData)
+                    val signOptionsFragment =
+                        childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
+                    setSignerConfig(signOptionsFragment.getSigningConfig())
+                    if (binding.cbAlign.isChecked) align()
+                    build().start()
+                    Utils.copy(requireContext(), mTempOutputPath, mAABUri!!)
             }
+    }
+
+    private suspend fun getBundleConfig() = withContext(Dispatchers.IO) {
+        var bundleConfig: Config.BundleConfig? = null
+        mConfigUri?.let { uri ->
+            @Suppress("BlockingMethodInNonBlockingContext")
+            contentResolver.openInputStream(uri).use {
+                bundleConfig = Config.BundleConfig.parseFrom(it)
+            }
+        }
+        if(bundleConfig==null) bundleConfig = Config.BundleConfig.newBuilder().build()
+        if(binding.cbDefaultGradleConfig.isChecked){
+            val compressionBuilder = Config.Compression.newBuilder()
+            val compression = compressionBuilder.addAllUncompressedGlob(mFilesNotToCompress).build()
+            bundleConfig!!.toBuilder().mergeCompression(compression).build()
+        }
+        bundleConfig
     }
 
     override fun onStart() {

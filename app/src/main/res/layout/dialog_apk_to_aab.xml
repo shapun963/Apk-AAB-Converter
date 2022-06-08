@@ -54,13 +54,19 @@
                 android:layout_height="wrap_content"
                 android:enabled="false" />
         </com.google.android.material.textfield.TextInputLayout>
+       <CheckBox
+           android:id="@+id/cb_default_gradle_config"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="Use default AGP config (partially implemented)"
+           android:checked="true"
+           tools:ignore="HardcodedText" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="5dp"
             android:text="The options below are optional. Click here for more info about these options ."
             tools:ignore="HardcodedText" />
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_config_path"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
