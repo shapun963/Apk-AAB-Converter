@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context=".fragment.AABToApkDialogFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round_outline"
+        android:backgroundTint="@color/colorDialogBackground"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_aab_path"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:hint="@string/hint_select_aab_file"
+            app:endIconContentDescription="Pick AAB"
+            app:endIconDrawable="@drawable/ic_attach_file_24dp"
+            app:endIconMode="custom"
+            app:hintTextColor="?colorAccent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tiet_aab_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_apk_path"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:hint="@string/select_apk_output_path"
+            app:endIconContentDescription="@string/select_apk_output_path"
+            app:endIconDrawable="@drawable/ic_attach_file_24dp"
+            app:endIconMode="custom"
+            app:hintTextColor="?colorAccent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tiet_apk_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <CheckBox
+            android:id="@+id/cb_verbose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:text="Verbose Logging"
+            tools:ignore="HardcodedText" />
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_sign_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:tag="SignOptionsFragment"
+            android:name="com.shapun.apkaabconverter.fragment.SignOptionsFragment"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_convert_to_apk"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="@string/convert_to_apk"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            app:backgroundTint="?colorPrimary"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+</ScrollView>
