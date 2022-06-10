@@ -104,7 +104,7 @@ class AABToApkDialogFragment : DialogFragment() {
             lifecycleScope.launch(errorHandler){
             isCancelable = false
                 mLogger = Logger()
-            ((binding.root.getChildAt(0) as ViewGroup)).apply {
+            binding.root.getChildAt(0) as ViewGroup.apply {
                 removeAllViews()
                 addView(ProgressBar(requireContext()))
                 val logTv = TextView(requireContext())
