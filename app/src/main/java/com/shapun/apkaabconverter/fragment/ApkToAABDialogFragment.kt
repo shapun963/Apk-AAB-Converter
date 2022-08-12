@@ -248,7 +248,7 @@ class ApkToAABDialogFragment : DialogFragment() {
         if(binding.cbDefaultGradleConfig.isChecked){
             val compressionBuilder = Config.Compression.newBuilder()
             val compression = compressionBuilder.addAllUncompressedGlob(mFilesNotToCompress).build()
-            bundleConfig!!.toBuilder().setCompression(compression).build()
+            bundleConfig!!.toBuilder().mergeCompression(compression).build()
         }
         bundleConfig
     }
