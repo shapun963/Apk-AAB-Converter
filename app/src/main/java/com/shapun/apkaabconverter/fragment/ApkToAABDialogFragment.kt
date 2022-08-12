@@ -259,7 +259,7 @@ var bundleConfig: Config.BundleConfig? = null
 			 val compressionBuilder = Config.Compression.newBuilder();
 			 compressionBuilder.addAllUncompressedGlob(mFilesNotToCompress);
 			
-				Config.BundleConfig.Builder bundleConfig = Config.BundleConfig.newBuilder()
+				val bundleConfig = Config.BundleConfig.newBuilder()
 						.setCompression(compressionBuilder)
 						.setOptimizations(bundleOptimizations);
 bundleConfig.build()
