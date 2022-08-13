@@ -237,7 +237,7 @@ class ApkToAABDialogFragment : DialogFragment() {
     }
 
     private suspend fun getBundleConfig() = withContext(Dispatchers.IO) {
-        /*
+
 var bundleConfig: Config.BundleConfig? = null
         mConfigUri?.let { uri ->
             @Suppress("BlockingMethodInNonBlockingContext")
@@ -252,17 +252,7 @@ var bundleConfig: Config.BundleConfig? = null
             bundleConfig!!.toBuilder().mergeCompression(compression).build()
         }
         bundleConfig
-*/
- val bundleOptimizations = Config.Optimizations.newBuilder()
-                .setUncompressNativeLibraries( Config.UncompressNativeLibraries.newBuilder().setEnabled(false));
-				
-			 val compressionBuilder = Config.Compression.newBuilder();
-			 compressionBuilder.addAllUncompressedGlob(mFilesNotToCompress);
-			
-				Config.BundleConfig.Builder bundleConfig = Config.BundleConfig.newBuilder()
-						.setCompression(compressionBuilder)
-						.setOptimizations(bundleOptimizations);
-bundleConfig.build()
+
     }
 
     override fun onStart() {
