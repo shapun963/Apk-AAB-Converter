@@ -25,8 +25,7 @@ class ZipAligner(inputPath: Path, outputPath: Path) {
         val processBuilder = ProcessBuilder()
         val args = ImmutableList.of(
             File(App.context.applicationInfo.nativeLibraryDir, "libzipalign.so").toString(),
-            if (mVerbose) "-v" else "",
-            "-f",
+            if (mVerbose) "-vf" else "-f",
             "4",
             mInputPath.absolutePathString(),
             mOutputPath.absolutePathString()
