@@ -28,6 +28,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -210,8 +211,14 @@ class ApkToAABDialogFragment : DialogFragment() {
             toast("Successfully Converted AAB to Apk")
             //removes Progressbar
             (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
+            clearCache()
             isCancelable = true
         }
+    }
+
+    private fun clearCache(){
+        val dirPath = "${requireContext().cacheDir.absolutePath}${File.separator}temp"
+        Runtime.getRuntime().exec("rm -rf $dirPath")
     }
 
     private suspend fun convert() = withContext(Dispatchers.Default) {
