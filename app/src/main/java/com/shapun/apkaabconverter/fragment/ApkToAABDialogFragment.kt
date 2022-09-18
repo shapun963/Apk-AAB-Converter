@@ -1,5 +1,7 @@
 package com.shapun.apkaabconverter.fragment
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,6 +12,7 @@ import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.android.bundle.Config
@@ -50,37 +53,40 @@ class ApkToAABDialogFragment : DialogFragment() {
     private var mLogger: Logger? = null
     //default values AGP uses
     private val mFilesNotToCompress = listOf(
-        "**/*.3g2",
-        "**/*.3gp",
-        "**/*.3gpp",
-        "**/*.3gpp2",
-        "**/*.aac",
-        "**/*.amr",
-        "**/*.awb",
-        "**/*.gif",
-        "**/*.imy",
-        "**/*.jet",
-        "**/*.jpeg",
-        "**/*.jpg",
-        "**/*.m4a",
-        "**/*.m4v",
-        "**/*.mid",
-        "**/*.midi",
-        "**/*.mkv",
-        "**/*.mp2",
-        "**/*.mp3",
-        "**/*.mp4",
-        "**/*.mpeg",
-        "**/*.mpg",
-        "**/*.ogg",
-        "**/*.png",
-        "**/*.rtttl",
-        "**/*.smf",
-        "**/*.wav",
-        "**/*.webm",
-        "**/*.wma",
-        "**/*.wmv",
-        "**/*.xmf"
+        "**.3[gG]2",
+        "**.3[gG][pP]",
+        "**.3[gG][pP][pP]",
+        "**.3[gG][pP][pP]2",
+        "**.[aA][aA][cC]",
+        "**.[aA][mM][rR]",
+        "**.[aA][wW][bB]",
+        "**.[gG][iI][fF]",
+        "**.[iI][mM][yY]",
+        "**.[jJ][eE][tT]",
+        "**.[jJ][pP][eE][gG]",
+        "**.[jJ][pP][gG]",
+        "**.[mM]4[aA]",
+        "**.[mM]4[vV]",
+        "**.[mM][iI][dD]",
+        "**.[mM][iI][dD][iI]",
+        "**.[mM][kK][vV]",
+        "**.[mM][pP]2",
+        "**.[mM][pP]3",
+        "**.[mM][pP]4",
+        "**.[mM][pP][eE][gG]",
+        "**.[mM][pP][gG]",
+        "**.[oO][gG][gG]",
+        "**.[oO][pP][uU][sS]",
+        "**.[pP][nN][gG]",
+        "**.[rR][tT][tT][tT][lL]",
+        "**.[sS][mM][fF]",
+        "**.[tT][fF][lL][iI][tT][eE]",
+        "**.[wW][aA][vV]",
+        "**.[wW][eE][bB][mM]",
+        "**.[wW][eE][bB][pP]",
+        "**.[wW][mM][aA]",
+        "**.[wW][mM][vV]",
+        "**.[xX][mM][fF]"
     )
     private val mResultLauncherSelectApk = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -96,7 +102,7 @@ class ApkToAABDialogFragment : DialogFragment() {
         }
     }
     private val mResultLauncherSelectAABPath =
-        registerForActivityResult(ActivityResultContracts.CreateDocument()) {
+        registerForActivityResult(CreateDocument("*/*")) {
             if (it != null) {
                 val name: String = Utils.queryName(contentResolver, it)
                 if (name.endsWith(".aab")) {
@@ -244,19 +250,18 @@ class ApkToAABDialogFragment : DialogFragment() {
     }
 
     private suspend fun getBundleConfig() = withContext(Dispatchers.IO) {
-
-var bundleConfig: Config.BundleConfig? = null
+        var bundleConfig: Config.BundleConfig? = null
         mConfigUri?.let { uri ->
             @Suppress("BlockingMethodInNonBlockingContext")
             contentResolver.openInputStream(uri).use {
                 bundleConfig = Config.BundleConfig.parseFrom(it)
             }
         }
-        if(bundleConfig==null) bundleConfig = Config.BundleConfig.newBuilder().build()
-        if(binding.cbDefaultGradleConfig.isChecked){
+        if (bundleConfig == null) bundleConfig = Config.BundleConfig.newBuilder().build()
+        if (binding.cbDefaultGradleConfig.isChecked) {
             val compressionBuilder = Config.Compression.newBuilder()
             val compression = compressionBuilder.addAllUncompressedGlob(mFilesNotToCompress).build()
-            bundleConfig!!.toBuilder().mergeCompression(compression).build()
+            bundleConfig = bundleConfig!!.toBuilder().mergeCompression(compression).build()
         }
         bundleConfig
 
