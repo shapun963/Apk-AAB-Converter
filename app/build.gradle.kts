@@ -43,6 +43,8 @@ android {
 }
 
 dependencies {
+    implementation(files("libs/jksprovider.jar")) //jks
+    implementation("org.bouncycastle:bcprov-jdk18on:1.71.1") //pkcs12
     implementation("com.android.tools.build:bundletool:1.9.1")
     implementation("com.android.tools.build:apksig:7.1.3")
     implementation("com.google.guava:guava:31.1-jre")

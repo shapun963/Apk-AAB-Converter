@@ -7,11 +7,17 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import com.shapun.apkaabconverter.activity.DebugActivity;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.security.Security;
+
+import sun1.security.provider.JavaProvider;
 
 public class App extends Application {
 	private Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
@@ -37,10 +43,31 @@ public class App extends Application {
 			System.exit(2);
 			uncaughtExceptionHandler.uncaughtException(thread, ex);
 		});
-		
+
 		super.onCreate();
-		
+        addProviders();
+
 	}
+
+	private void addProviders() {
+		try {
+			Security.removeProvider("BC"); //must remove the old bc
+		} catch (Exception ignored) {
+		}
+
+		try {
+			// for pksc12
+			Security.insertProviderAt(new BouncyCastleProvider(), 1);
+		} catch (Exception ignored) {
+		}
+
+		try {
+			// for jks
+			Security.addProvider(new JavaProvider());
+		} catch (Exception ignored) {
+		}
+	}
+
 	private String getStackTrace(Throwable th){
 		final Writer result = new StringWriter();
 		final PrintWriter printWriter = new PrintWriter(result);
@@ -52,7 +79,7 @@ public class App extends Application {
 		final String stacktraceAsString = result.toString();
 		printWriter.close();
 		return stacktraceAsString;
-		
+
 	}
-	
+
 }
