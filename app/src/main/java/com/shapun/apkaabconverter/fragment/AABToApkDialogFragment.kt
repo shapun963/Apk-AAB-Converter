@@ -9,7 +9,7 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
@@ -41,7 +41,7 @@ class AABToApkDialogFragment : DialogFragment() {
     private var mApkUri: Uri? = null
     private var mLogger: Logger? = null
     private val mResultLauncherSelectApkPath = registerForActivityResult(
-        ActivityResultContracts.CreateDocument()
+        CreateDocument("*/*")
     ) {
         if (it != null) {
             val contentResolver = requireContext().contentResolver
