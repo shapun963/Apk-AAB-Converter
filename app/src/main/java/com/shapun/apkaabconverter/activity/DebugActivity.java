@@ -14,12 +14,12 @@ public class DebugActivity extends Activity {
         super.onCreate(savedInstanceState);
 		Intent intent = getIntent();
 		String errMsg = "";
-		if(intent != null){
+		if (intent != null) {
 			errMsg = intent.getStringExtra("error");
 		}
         AlertDialog.Builder bld = new AlertDialog.Builder(this);
 		bld.setTitle("An error occurred");
-		bld.setMessage( errMsg );
+		bld.setMessage(errMsg);
 		bld.setNeutralButton("End Application", (dialog, which) -> finish());
 		bld.create().show();
     }

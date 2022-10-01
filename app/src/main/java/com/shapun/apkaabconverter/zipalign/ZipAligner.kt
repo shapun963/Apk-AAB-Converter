@@ -1,6 +1,5 @@
 package com.shapun.apkaabconverter.zipalign
 
-import com.google.common.collect.ImmutableList
 import com.shapun.apkaabconverter.App
 import java.io.File
 import java.io.StringWriter
@@ -23,7 +22,7 @@ class ZipAligner(inputPath: Path, outputPath: Path) {
 
     fun align() {
         val processBuilder = ProcessBuilder()
-        val args = ImmutableList.of(
+        val args = listOf(
             File(App.context.applicationInfo.nativeLibraryDir, "libzipalign.so").toString(),
             if (mVerbose) "-vf" else "-f",
             "4",
@@ -39,7 +38,7 @@ class ZipAligner(inputPath: Path, outputPath: Path) {
         }
         process.waitFor()
         mLogs = errorList.joinToString("\n")
-        if(errorList.stream().anyMatch{it.startsWith("ERROR:")}) {
+        if (errorList.stream().anyMatch{ it.startsWith("ERROR:") }) {
             throw Exception(errorList.stream().collect(Collectors.joining("\n")))
         }
     }
