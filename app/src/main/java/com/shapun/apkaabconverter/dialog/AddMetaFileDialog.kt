@@ -40,28 +40,28 @@ class AddMetaFileDialog : DialogFragment() {
         }
         return AlertDialog.Builder(requireActivity())
             .setTitle("Add Meta file")
-            .setPositiveButton("Add",null) //{ _, _ -> }
+            .setPositiveButton("Add", null)
             .setView(binding.root)
-            .setNegativeButton("Cancel"){_,_->dismiss()}
+            .setNegativeButton("Cancel"){ _, _-> dismiss() }
             .create()
     }
 
     override fun onResume() {
         super.onResume()
         (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener{
-            if(mPath == null){
+            if (mPath == null) {
                 binding.tilMetadataPath.error= "No file selected"
                 return@setOnClickListener
             }
-            if(binding.tietMetadataDirectoryPathInAab.text.toString().isEmpty()){
+            if (binding.tietMetadataDirectoryPathInAab.text.toString().isEmpty()) {
                 binding.tilMetadataDirectoryPathInAab.error = "Directory path cant be empty"
                 return@setOnClickListener
             }
-            if(binding.tietMetadataNameInAab.text.toString().isEmpty()){
+            if (binding.tietMetadataNameInAab.text.toString().isEmpty()) {
                 binding.tilMetadataNameInAab.error = "Name cant be empty"
                 return@setOnClickListener
             }
-            if(parentFragment is ApkToAABDialogFragment){
+            if (parentFragment is ApkToAABDialogFragment) {
                 (parentFragment as ApkToAABDialogFragment).addMetaData(
                     MetaData(
                         binding.tietMetadataPath.text.toString(),

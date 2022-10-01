@@ -30,7 +30,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-//ToDo: Use coroutines instead of Executors
 class AABToApkDialogFragment : DialogFragment() {
 
     private lateinit var binding: DialogAabToApkBinding
@@ -122,7 +121,7 @@ class AABToApkDialogFragment : DialogFragment() {
 
     private fun clearCache(){
         val dirPath = "${requireContext().cacheDir.absolutePath}${File.separator}temp"
-        Runtime.getRuntime().exec("rm -rf $dirPath")
+        File(dirPath).deleteRecursively()
     }
 
     private suspend fun convert() = withContext(Dispatchers.Default) {

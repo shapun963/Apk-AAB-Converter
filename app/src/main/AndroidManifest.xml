@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.shapun.apkaabconverter">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:name=".App"
@@ -19,7 +18,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.DebugActivity" />
+        <activity
+            android:name=".activity.DebugActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

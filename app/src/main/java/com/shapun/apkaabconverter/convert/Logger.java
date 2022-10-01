@@ -10,10 +10,10 @@ public class Logger {
 	}
 	
 	public void add(String logText){
-		if(mLogListener != null){
+		if (mLogListener != null) {
 			mLogListener.onLogAdded(logText);
 		}
-		if(mLogs.length() != 0){
+		if (mLogs.length() != 0) {
 			mLogs.append(System.lineSeparator());
 		}
 		mLogs.append(logText);

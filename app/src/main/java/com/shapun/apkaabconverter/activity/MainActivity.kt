@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.btnAabToApk.setOnClickListener {
             AABToApkDialogFragment.newInstance().show(
-                supportFragmentManager,AABToApkDialogFragment::class.java.simpleName
+                supportFragmentManager, AABToApkDialogFragment::class.java.simpleName
             )
         }
 
@@ -35,7 +35,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         val intent = Intent()
         intent.data = Uri.parse("https://github.com/shapun963/Apk-AAB-Converter")
-        menu?.add(0,0,0,"GitHub")?.setIcon(R.drawable.ic_github)?.setIntent(intent)?.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        menu?.add(0, 0, 0, "GitHub")
+                ?.setIcon(R.drawable.ic_github)
+                ?.setIntent(intent)
+                ?.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         return super.onCreateOptionsMenu(menu)
     }
 }

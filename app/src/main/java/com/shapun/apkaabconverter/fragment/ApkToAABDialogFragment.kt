@@ -224,7 +224,7 @@ class ApkToAABDialogFragment : DialogFragment() {
 
     private fun clearCache(){
         val dirPath = "${requireContext().cacheDir.absolutePath}${File.separator}temp"
-        Runtime.getRuntime().exec("rm -rf $dirPath")
+        File(dirPath).deleteRecursively()
     }
 
     private suspend fun convert() = withContext(Dispatchers.Default) {

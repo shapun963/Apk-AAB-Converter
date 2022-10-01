@@ -36,7 +36,7 @@ public class App extends Application {
 			Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 			intent.putExtra("error", getStackTrace(ex));
-			@SuppressLint("UnspecifiedImmutableFlag") PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 11111, intent, PendingIntent.FLAG_ONE_SHOT);
+			PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 11111, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 			AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
 			am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, 1000, pendingIntent);
 			android.os.Process.killProcess(android.os.Process.myPid());
@@ -46,12 +46,11 @@ public class App extends Application {
 
 		super.onCreate();
         addProviders();
-
 	}
 
 	private void addProviders() {
 		try {
-			Security.removeProvider("BC"); //must remove the old bc
+			Security.removeProvider("BC"); //must remove the old bc provider
 		} catch (Exception ignored) {
 		}
 
@@ -72,14 +71,12 @@ public class App extends Application {
 		final Writer result = new StringWriter();
 		final PrintWriter printWriter = new PrintWriter(result);
 		Throwable cause = th;
-		while(cause != null){
+		while (cause != null) {
 			cause.printStackTrace(printWriter);
 			cause = cause.getCause();
 		}
 		final String stacktraceAsString = result.toString();
 		printWriter.close();
 		return stacktraceAsString;
-
 	}
-
 }
