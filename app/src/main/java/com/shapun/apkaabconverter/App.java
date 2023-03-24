@@ -6,6 +6,7 @@ import android.app.Application;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+
 import com.shapun.apkaabconverter.activity.DebugActivity;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -17,66 +18,59 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.security.Security;
 
-import sun1.security.provider.JavaProvider;
-
 public class App extends Application {
-	private Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
-	@SuppressLint("StaticFieldLeak")
-	public static Context context;
-	@Override
-	public void onCreate() {
-		context = this;
-		try {
-			File dir = getExternalFilesDir(null);
-            Runtime.getRuntime().exec("logcat -f " + dir.getAbsolutePath()+"/log.txt");
+    private Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
+    @SuppressLint("StaticFieldLeak")
+    public static Context context;
+
+    @Override
+    public void onCreate() {
+        context = this;
+        try {
+            File dir = getExternalFilesDir(null);
+            Runtime.getRuntime().exec("logcat -f " + dir.getAbsolutePath() + "/log.txt");
         } catch (IOException ignored) {
         }
-		this.uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-		Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
-			Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-			intent.putExtra("error", getStackTrace(ex));
-			PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 11111, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
-			AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-			am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, 1000, pendingIntent);
-			android.os.Process.killProcess(android.os.Process.myPid());
-			System.exit(2);
-			uncaughtExceptionHandler.uncaughtException(thread, ex);
-		});
+        this.uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+            Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.putExtra("error", getStackTrace(ex));
+            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 11111, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, 1000, pendingIntent);
+            android.os.Process.killProcess(android.os.Process.myPid());
+            System.exit(2);
+            uncaughtExceptionHandler.uncaughtException(thread, ex);
+        });
 
-		super.onCreate();
+        super.onCreate();
         addProviders();
-	}
+    }
 
-	private void addProviders() {
-		try {
-			Security.removeProvider("BC"); //must remove the old bc provider
-		} catch (Exception ignored) {
-		}
+    private void addProviders() {
+        try {
+            Security.removeProvider("BC"); //must remove the old bc provider
+        } catch (Exception ignored) {
+        }
 
-		try {
-			// for pksc12
-			Security.insertProviderAt(new BouncyCastleProvider(), 1);
-		} catch (Exception ignored) {
-		}
+        try {
+            // insert the new bc provider at first
+            Security.insertProviderAt(new BouncyCastleProvider(), 1);
+        } catch (Exception ignored) {
+        }
+    }
 
-		try {
-			// for jks
-			Security.addProvider(new JavaProvider());
-		} catch (Exception ignored) {
-		}
-	}
-
-	private String getStackTrace(Throwable th){
-		final Writer result = new StringWriter();
-		final PrintWriter printWriter = new PrintWriter(result);
-		Throwable cause = th;
-		while (cause != null) {
-			cause.printStackTrace(printWriter);
-			cause = cause.getCause();
-		}
-		final String stacktraceAsString = result.toString();
-		printWriter.close();
-		return stacktraceAsString;
-	}
+    private String getStackTrace(Throwable th) {
+        final Writer result = new StringWriter();
+        final PrintWriter printWriter = new PrintWriter(result);
+        Throwable cause = th;
+        while (cause != null) {
+            cause.printStackTrace(printWriter);
+            cause = cause.getCause();
+        }
+        final String stacktraceAsString = result.toString();
+        printWriter.close();
+        return stacktraceAsString;
+    }
 }
