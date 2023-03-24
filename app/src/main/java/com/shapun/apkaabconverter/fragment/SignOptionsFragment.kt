@@ -20,7 +20,7 @@ import java.io.IOException
 import java.security.KeyStore
 import java.security.KeyStoreException
 import java.security.UnrecoverableKeyException
-import java.util.*
+import java.util.Collections
 
 class SignOptionsFragment : Fragment() {
 
@@ -37,9 +37,11 @@ class SignOptionsFragment : Fragment() {
             is KeyStoreException ->
                 binding.tilKsPassword.error =
                     "Unable to build a keystore instance: " + throwable.message!!
+
             is IOException -> {
                 binding.tilKsPassword.error = "Incorrect password"
             }
+
             else ->
                 binding.tilKsPath.error = throwable.toString()
         }
@@ -87,16 +89,20 @@ class SignOptionsFragment : Fragment() {
             mGetKeyStoreJob = lifecycleScope.launch(mKSExceptionHandler) {
                 mKeyStore = getKeyStore()
                 binding.spinnerAliases.visibility = View.VISIBLE
-                binding.tilAliasPassword.visibility =
-                    if (mKeyStore?.type == SignUtils.PKCS12) View.GONE else View.VISIBLE
                 binding.tilKsPath.error = null
                 binding.spinnerAliases.adapter = ArrayAdapter(
                     requireContext(),
                     android.R.layout.simple_list_item_1,
                     Collections.list(mKeyStore!!.aliases())
                 )
-                if (mKeyStore?.type == SignUtils.PKCS12) // keys of pkcs12 are paired
-                    mCustomSignerConfig = getCustomSignerConfig()
+                // We should assume that alias password is the same as the keystore password and that,
+                // if this assumption is wrong, we should prompt for key password and retry loading
+                // the key using that password.
+                runCatching { mCustomSignerConfig = getCustomSignerConfig() }.onFailure {
+                    if ((it.cause ?: it) is UnrecoverableKeyException)
+                        binding.tilAliasPassword.visibility = View.VISIBLE
+                    else throw it
+                }
             }
         }
         binding.tietAliasPassword.doAfterTextChanged {
@@ -104,7 +110,7 @@ class SignOptionsFragment : Fragment() {
             binding.tilAliasPassword.error = null
             mCustomSignerConfig = null
             mGetSignerConfigJob = lifecycleScope.launch(mSignerConfigExceptionHandler) {
-                mCustomSignerConfig = getCustomSignerConfig()
+                mCustomSignerConfig = getCustomSignerConfig(it.toString())
                 binding.tilAliasPassword.error = null
             }
         }
@@ -112,23 +118,21 @@ class SignOptionsFragment : Fragment() {
     }
 
     private suspend fun getKeyStore(): KeyStore = withContext(Dispatchers.IO) {
-        @Suppress("BlockingMethodInNonBlockingContext")
         contentResolver.openInputStream(mKSUri!!).use {
             SignUtils.getKeyStore(it!!, binding.tietKsPassword.text.toString())
         }
     }
 
-    private suspend fun getCustomSignerConfig(): ApkSigner.SignerConfig =
-        withContext(Dispatchers.Default) {
-            SignUtils.getSignerConfig(
-                mKeyStore!!,
-                binding.spinnerAliases.selectedItem as String,
-                binding.tietAliasPassword.text.toString().ifBlank {
-                    // for pkcs12 use the key pwd instead of alias pwd
-                    binding.tietKsPassword.text.toString()
-                }
-            )
-        }
+    private suspend fun getCustomSignerConfig(
+        // alias password is same as the keystore password by default
+        AliasPassword: String = binding.tietKsPassword.text.toString()
+    ): ApkSigner.SignerConfig = withContext(Dispatchers.Default) {
+        SignUtils.getSignerConfig(
+            mKeyStore!!,
+            binding.spinnerAliases.selectedItem as String,
+            AliasPassword
+        )
+    }
 
     suspend fun getSigningConfig(): ApkSigner.SignerConfig? {
         return if (binding.rgSignType.checkedRadioButtonId == binding.rbSignDebug.id) {

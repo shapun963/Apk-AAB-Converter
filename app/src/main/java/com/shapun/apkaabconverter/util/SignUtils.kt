@@ -3,6 +3,7 @@ package com.shapun.apkaabconverter.util
 import android.content.Context
 import com.android.apksig.ApkSigner
 import com.google.common.collect.ImmutableList
+import com.shapun.apkaabconverter.jks.JavaKeyStore
 import java.io.*
 import java.security.KeyFactory
 import java.security.KeyStore
@@ -12,13 +13,12 @@ import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
-import java.util.*
+import java.util.Arrays
+import java.util.Properties
 import java.util.stream.Collectors
 
 
 object SignUtils {
-    const val PKCS12 = "PKCS12"
-    private const val JKS = "JKS"
     private lateinit var SIGNER_NAME: String
 
     fun getDebugSignerConfig(context: Context): ApkSigner.SignerConfig {
@@ -66,32 +66,25 @@ object SignUtils {
         val data = ByteArrayInputStream(ByteArrayOutputStream().apply {
             inputStream.copyTo(this)
         }.toByteArray())
-        val keystore: KeyStore = KeyStore.getInstance(getKeyType(data))
+        val keystore: KeyStore = if (isJKS(data)) JavaKeyStore() else KeyStore.getInstance("PKCS12")
         keystore.load(data, password.toCharArray())
         return keystore
     }
 
-    private fun getKeyType(data: InputStream): String {
-        var type = PKCS12
-        try {
-            DataInputStream(BufferedInputStream(data)).let {
-                val magic = it.readInt()
-                val storeVersion = it.readInt()
-                if (magic == 0x0000feedfeedL.toInt() && (storeVersion == 1 || storeVersion == 2))
-                    type = JKS
-            }
-        } catch (_: Exception) {
-        }
+    private fun isJKS(data: InputStream): Boolean = try {
+        DataInputStream(BufferedInputStream(data)).readInt() == 0XFEEDFEEDL.toInt()
+    } catch (_: Throwable) {
+        false
+    } finally {
         data.reset() //must reset
-        return type
     }
 
     fun getSignerConfig(
-        keystore: KeyStore, keyAlias: String, keyPassword: String
+        keystore: KeyStore, keyAlias: String, aliasPassword: String
     ): ApkSigner.SignerConfig {
         val privateKey = keystore.getKey(
             keyAlias,
-            KeyStore.PasswordProtection(keyPassword.toCharArray()).password
+            KeyStore.PasswordProtection(aliasPassword.toCharArray()).password
         ) as PrivateKey
         val certChain = keystore.getCertificateChain(keyAlias)
             ?: throw RuntimeException("No key found with alias '%s' in keystore.")
