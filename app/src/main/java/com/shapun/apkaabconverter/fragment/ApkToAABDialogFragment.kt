@@ -1,22 +1,15 @@
 package com.shapun.apkaabconverter.fragment
 
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
-import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.android.bundle.Config
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shapun.apkaabconverter.adapter.MetaDataAdapter
 import com.shapun.apkaabconverter.convert.ApkToAABConverter
 import com.shapun.apkaabconverter.convert.Logger
@@ -31,15 +24,13 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
 //ToDo: implement default gradle configs fully
-class ApkToAABDialogFragment : DialogFragment() {
+class ApkToAABDialogFragment : BaseDialogFragment<DialogApkToAabBinding>() {
 
-    private lateinit var binding: DialogApkToAabBinding
     private lateinit var mTempDir: Path
     private lateinit var mTempInputPath: Path
     private lateinit var mTempOutputPath: Path
@@ -51,6 +42,7 @@ class ApkToAABDialogFragment : DialogFragment() {
     private var mMetaDataUri: Uri? = null
     private val mMetaData: MutableList<MetaData> = ArrayList()
     private var mLogger: Logger? = null
+
     //default values AGP uses
     private val mFilesNotToCompress = listOf(
         "**.3[gG]2",
@@ -126,13 +118,8 @@ class ApkToAABDialogFragment : DialogFragment() {
             }
         }
 
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = DialogApkToAabBinding.inflate(layoutInflater, container, false)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         val dirPath = requireContext().cacheDir.absolutePath + "/temp"
         mTempDir = Paths.get(dirPath)
         Files.createDirectories(mTempDir)
@@ -143,15 +130,11 @@ class ApkToAABDialogFragment : DialogFragment() {
         binding.rvMetaFiles.adapter = MetaDataAdapter(mMetaData)
         binding.btnApkToAab.setOnClickListener {
             when {
-                mAABUri == null -> {
-                    toast("Input can't be empty")
-                }
-                mApkUri == null -> {
-                    toast("Output can't be empty")
-                }
-                else -> {
-                    startApkToAAB()
-                }
+                mAABUri == null -> toast("Input can't be empty")
+
+                mApkUri == null -> toast("Output can't be empty")
+
+                else -> startApkToAAB()
             }
         }
 
@@ -176,15 +159,6 @@ class ApkToAABDialogFragment : DialogFragment() {
             AddMetaFileDialog.newInstance()
                 .show(childFragmentManager, AddMetaFileDialog::class.simpleName)
         }
-        return binding.root
-    }
-
-    private fun showErrorDialog(error: String) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Failed to convert file")
-            .setMessage(error)
-            .setPositiveButton("Cancel", null)
-            .show()
     }
 
     fun addMetaData(metaData: MetaData) {
@@ -198,8 +172,7 @@ class ApkToAABDialogFragment : DialogFragment() {
             CoroutineExceptionHandler { _, throwable ->
                 mLogger!!.add(throwable.toString())
                 showErrorDialog(throwable.toString())
-                (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
-                isCancelable = true
+                doFinallyAfterConvert()
             }
         lifecycleScope.launch(errorHandler) {
             isCancelable = false
@@ -208,51 +181,42 @@ class ApkToAABDialogFragment : DialogFragment() {
                 addView(ProgressBar(requireContext()))
                 val logTv = TextView(requireContext())
                 addView(logTv)
-                mLogger =  Logger()
+                mLogger = Logger()
                 mLogger!!.setLogListener { log ->
                     runOnUiThread { logTv.append(log + "\n") }
                 }
             }
             convert()
             toast("Successfully Converted AAB to Apk")
-            //removes Progressbar
-            (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
-            clearCache()
-            isCancelable = true
+            doFinallyAfterConvert()
         }
     }
 
-    private fun clearCache(){
-        val dirPath = "${requireContext().cacheDir.absolutePath}${File.separator}temp"
-        File(dirPath).deleteRecursively()
-    }
-
     private suspend fun convert() = withContext(Dispatchers.Default) {
-            Utils.copy(requireContext(), mApkUri!!, mTempInputPath)
-            mConfigUri?.let { Utils.copy(requireContext(), it, mConfigPath) }
-            mMetaDataUri?.let { Utils.copy(requireContext(), it, mMetaDataPath) }
-            ApkToAABConverter.Builder(
-                requireContext(),
-                mTempInputPath,
-                mTempOutputPath
-            ).apply {
-                setLogger(mLogger)
-                setVerbose(binding.cbVerbose.isChecked)
-                setBundleConfig(getBundleConfig())
-                    mMetaData.forEach(this::addMetaData)
-                    val signOptionsFragment =
-                        childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
-                    setSignerConfig(signOptionsFragment.getSigningConfig())
-                    if (binding.cbAlign.isChecked) align()
-                    build().start()
-                    Utils.copy(requireContext(), mTempOutputPath, mAABUri!!)
-            }
+        Utils.copy(requireContext(), mApkUri!!, mTempInputPath)
+        mConfigUri?.let { Utils.copy(requireContext(), it, mConfigPath) }
+        mMetaDataUri?.let { Utils.copy(requireContext(), it, mMetaDataPath) }
+        ApkToAABConverter.Builder(
+            requireContext(),
+            mTempInputPath,
+            mTempOutputPath
+        ).apply {
+            setLogger(mLogger)
+            setVerbose(binding.cbVerbose.isChecked)
+            setBundleConfig(getBundleConfig())
+            mMetaData.forEach(this::addMetaData)
+            val signOptionsFragment =
+                childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
+            setSignerConfig(signOptionsFragment.getSigningConfig())
+            if (binding.cbAlign.isChecked) align()
+            build().start()
+            Utils.copy(requireContext(), mTempOutputPath, mAABUri!!)
+        }
     }
 
     private suspend fun getBundleConfig() = withContext(Dispatchers.IO) {
         var bundleConfig: Config.BundleConfig? = null
         mConfigUri?.let { uri ->
-            @Suppress("BlockingMethodInNonBlockingContext")
             contentResolver.openInputStream(uri).use {
                 bundleConfig = Config.BundleConfig.parseFrom(it)
             }
@@ -265,22 +229,6 @@ class ApkToAABDialogFragment : DialogFragment() {
         }
         bundleConfig
 
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val dialog = dialog
-        if (dialog != null) {
-            val window = dialog.window
-            window!!.setBackgroundDrawable(null)
-            window.setLayout(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.WRAP_CONTENT
-            )
-            val margin = Utils.dpToPx(requireContext(), 25)
-            val params = requireView().layoutParams as FrameLayout.LayoutParams
-            params.setMargins(margin, margin, margin, margin)
-        }
     }
 
     companion object {
