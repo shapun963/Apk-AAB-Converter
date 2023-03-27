@@ -2,18 +2,13 @@ package com.shapun.apkaabconverter.fragment
 
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
-import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shapun.apkaabconverter.convert.AABToApkConverter
 import com.shapun.apkaabconverter.convert.Logger
 import com.shapun.apkaabconverter.databinding.DialogAabToApkBinding
@@ -25,14 +20,12 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class AABToApkDialogFragment : DialogFragment() {
+class AABToApkDialogFragment : BaseDialogFragment<DialogAabToApkBinding>() {
 
-    private lateinit var binding: DialogAabToApkBinding
     private lateinit var mTempDir: Path
     private lateinit var mTempInputPath: Path
     private lateinit var mTempOutputPath: Path
@@ -65,11 +58,7 @@ class AABToApkDialogFragment : DialogFragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = DialogAabToApkBinding.inflate(layoutInflater, container, false)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val dirPath = requireContext().cacheDir!!.absolutePath + "/temp"
         mTempDir = Paths.get(dirPath)
         Files.createDirectories(mTempDir)
@@ -96,14 +85,17 @@ class AABToApkDialogFragment : DialogFragment() {
             name = name.substring(0, name.lastIndexOf("."))
             mResultLauncherSelectApkPath.launch("$name.apks")
         }
-        return binding.root
     }
 
     private fun startAABToApk() {
-        val errorHandler = CoroutineExceptionHandler { _, throwable -> showErrorDialog(throwable.toString())}
-            lifecycleScope.launch(errorHandler){
+        val errorHandler = CoroutineExceptionHandler { _, throwable ->
+            mLogger!!.add(throwable.toString())
+            showErrorDialog(throwable.toString())
+            doFinallyAfterConvert()
+        }
+        lifecycleScope.launch(errorHandler) {
             isCancelable = false
-                mLogger = Logger()
+            mLogger = Logger()
             ((binding.root.getChildAt(0) as ViewGroup)).apply {
                 removeAllViews()
                 addView(ProgressBar(requireContext()))
@@ -113,57 +105,25 @@ class AABToApkDialogFragment : DialogFragment() {
             }
             convert()
             toast("Successfully Converted AAB to Apk")
-            (binding.root.getChildAt(0) as ViewGroup).removeViewAt(0)
-            clearCache()
-            isCancelable = true
+            doFinallyAfterConvert()
         }
-    }
-
-    private fun clearCache(){
-        val dirPath = "${requireContext().cacheDir.absolutePath}${File.separator}temp"
-        File(dirPath).deleteRecursively()
     }
 
     private suspend fun convert() = withContext(Dispatchers.Default) {
-            Utils.copy(requireContext(), mAABUri!!, mTempInputPath)
-            val builder =
-                AABToApkConverter.Builder(
-                    requireContext(),
-                    mTempInputPath,
-                    mTempOutputPath
-                )
-                    .setLogger(mLogger)
-                    .setVerbose(binding.cbVerbose.isChecked)
-            val signOptionsFragment =
-                childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
-            builder.setSignerConfig(signOptionsFragment.getSigningConfig())
-            builder.build().start()
-            Utils.copy(requireContext(), mTempOutputPath, mApkUri!!)
-    }
-
-    private fun showErrorDialog(error: String) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Failed to convert file")
-            .setMessage(error)
-            .setPositiveButton("Cancel", null)
-            .show()
-    }
-
-
-    override fun onStart() {
-        super.onStart()
-        val dialog = dialog
-        if (dialog != null) {
-            val window = dialog.window
-            window!!.setBackgroundDrawable(null)
-            window.setLayout(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.WRAP_CONTENT
+        Utils.copy(requireContext(), mAABUri!!, mTempInputPath)
+        val builder =
+            AABToApkConverter.Builder(
+                requireContext(),
+                mTempInputPath,
+                mTempOutputPath
             )
-            val margin = Utils.dpToPx(requireContext(), 25)
-            val params = requireView().layoutParams as FrameLayout.LayoutParams
-            params.setMargins(margin, margin, margin, margin)
-        }
+                .setLogger(mLogger)
+                .setVerbose(binding.cbVerbose.isChecked)
+        val signOptionsFragment =
+            childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
+        builder.setSignerConfig(signOptionsFragment.getSigningConfig())
+        builder.build().start()
+        Utils.copy(requireContext(), mTempOutputPath, mApkUri!!)
     }
 
     companion object {
