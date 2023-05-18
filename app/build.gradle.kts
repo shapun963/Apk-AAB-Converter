@@ -43,17 +43,17 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.8.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("com.google.android.material:material:1.9.0")
+    //implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    //implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
     implementation("com.google.guava:guava:31.1-jre")
-    implementation("com.google.protobuf:protobuf-java:3.21.2")
-    implementation("com.android.tools.build:apksig:7.4.2")
-    implementation("com.android.tools.build:bundletool:1.14.0")
+    implementation("com.google.protobuf:protobuf-java:3.23.0")
+    implementation("com.android.tools.build:apksig:8.0.1")
+    implementation("com.android.tools.build:bundletool:1.15.0")
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 
     testImplementation("junit:junit:4.13.2")
