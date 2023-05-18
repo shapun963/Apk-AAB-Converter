@@ -33,7 +33,7 @@ class AABToApkDialogFragment : BaseDialogFragment<DialogAabToApkBinding>() {
     private var mApkUri: Uri? = null
     private var mLogger: Logger? = null
     private val mResultLauncherSelectApkPath = registerForActivityResult(
-        CreateDocument("*/*")
+        CreateDocument("application/octet-stream")
     ) {
         if (it != null) {
             val contentResolver = requireContext().contentResolver

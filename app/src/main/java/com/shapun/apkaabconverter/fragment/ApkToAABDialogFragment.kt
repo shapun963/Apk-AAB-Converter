@@ -95,7 +95,7 @@ class ApkToAABDialogFragment : BaseDialogFragment<DialogApkToAabBinding>() {
         }
     }
     private val mResultLauncherSelectAABPath =
-        registerForActivityResult(CreateDocument("*/*")) {
+        registerForActivityResult(CreateDocument("application/octet-stream")) {
             if (it != null) {
                 val name: String = Utils.queryName(contentResolver, it)
                 if (name.endsWith(".aab")) {
