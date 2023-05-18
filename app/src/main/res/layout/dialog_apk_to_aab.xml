@@ -58,7 +58,7 @@
            android:id="@+id/cb_default_gradle_config"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:text="Use default AGP config (partially implemented)"
+           android:text="Use default AGP config"
            android:checked="true"
            tools:ignore="HardcodedText" />
         <TextView
