@@ -79,7 +79,8 @@ class ApkToAABDialogFragment : BaseDialogFragment<DialogApkToAabBinding>() {
         "**.[wW][mM][aA]",
         "**.[wW][mM][vV]",
         "**.[xX][mM][fF]"
-    )
+    ).shuffled()
+
     private val mResultLauncherSelectApk = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) {
