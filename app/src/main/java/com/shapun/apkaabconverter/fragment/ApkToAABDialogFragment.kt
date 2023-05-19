@@ -79,7 +79,8 @@ class ApkToAABDialogFragment : BaseDialogFragment<DialogApkToAabBinding>() {
         "**.[wW][mM][aA]",
         "**.[wW][mM][vV]",
         "**.[xX][mM][fF]"
-    )
+    ).shuffled()
+
     private val mResultLauncherSelectApk = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) {
@@ -94,7 +95,7 @@ class ApkToAABDialogFragment : BaseDialogFragment<DialogApkToAabBinding>() {
         }
     }
     private val mResultLauncherSelectAABPath =
-        registerForActivityResult(CreateDocument("*/*")) {
+        registerForActivityResult(CreateDocument("application/octet-stream")) {
             if (it != null) {
                 val name: String = Utils.queryName(contentResolver, it)
                 if (name.endsWith(".aab")) {
