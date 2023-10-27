@@ -34,9 +34,9 @@
 
     <LinearLayout
         android:id="@+id/ll_custom_ks_options"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_ks_path"
@@ -48,6 +48,7 @@
             app:endIconContentDescription="Select Output path"
             app:endIconDrawable="@drawable/ic_attach_file_24dp"
             app:endIconMode="custom"
+            app:errorIconDrawable="@drawable/ic_attach_file_24dp"
             app:hintTextColor="?colorAccent"
             tools:ignore="HardcodedText">
 
@@ -74,10 +75,10 @@
                 android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
-       <Spinner
-           android:id="@+id/spinner_aliases"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"/>
+        <Spinner
+            android:id="@+id/spinner_aliases"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_alias_password"

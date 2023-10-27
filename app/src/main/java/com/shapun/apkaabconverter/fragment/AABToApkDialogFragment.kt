@@ -121,7 +121,7 @@ class AABToApkDialogFragment : BaseDialogFragment<DialogAabToApkBinding>() {
                 .setVerbose(binding.cbVerbose.isChecked)
         val signOptionsFragment =
             childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
-        builder.setSignerConfig(signOptionsFragment.getSigningConfig())
+        builder.setSigningCertInfo(signOptionsFragment.getSigningCertInfo())
         builder.build().start()
         Utils.copy(requireContext(), mTempOutputPath, mApkUri!!)
     }

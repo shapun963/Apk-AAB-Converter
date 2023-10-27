@@ -91,20 +91,12 @@
             android:id="@+id/btn_add_meta_file"
             style="@style/Widget.MaterialComponents.Button"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:text="Add meta file"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
             android:textColor="@color/white"
             app:backgroundTint="?colorPrimary"
             app:cornerRadius="8dp"
-            tools:ignore="HardcodedText" />
-        <CheckBox
-            android:id="@+id/cb_align"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="5dp"
-            android:checked="true"
-            android:text="Align AAB"
             tools:ignore="HardcodedText" />
         <CheckBox
             android:id="@+id/cb_verbose"

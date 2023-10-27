@@ -208,8 +208,7 @@ class ApkToAABDialogFragment : BaseDialogFragment<DialogApkToAabBinding>() {
             mMetaData.forEach(this::addMetaData)
             val signOptionsFragment =
                 childFragmentManager.findFragmentByTag("SignOptionsFragment") as SignOptionsFragment
-            setSignerConfig(signOptionsFragment.getSigningConfig())
-            if (binding.cbAlign.isChecked) align()
+            setSigningCertInfo(signOptionsFragment.getSigningCertInfo())
             build().start()
             Utils.copy(requireContext(), mTempOutputPath, mAABUri!!)
         }

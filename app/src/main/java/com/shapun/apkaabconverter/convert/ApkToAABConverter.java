@@ -2,13 +2,12 @@ package com.shapun.apkaabconverter.convert;
 
 import android.content.Context;
 
-import com.android.apksig.ApkSigner;
-import com.android.apksig.apk.ApkFormatException;
 import com.android.bundle.Config;
 import com.android.tools.build.bundletool.commands.BuildBundleCommand;
 import com.google.common.collect.ImmutableList;
 import com.shapun.apkaabconverter.model.MetaData;
-import com.shapun.apkaabconverter.zipalign.ZipAligner;
+import com.shapun.apkaabconverter.signing.helper.SignHelper;
+import com.shapun.apkaabconverter.signing.model.CertificateInfo;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,9 +18,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -29,6 +25,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import kotlin.io.FilesKt;
 
 public class ApkToAABConverter extends FileConverter {
 
@@ -39,9 +37,7 @@ public class ApkToAABConverter extends FileConverter {
     private final Path mBundleConfigPath;
     private final Config.BundleConfig mBundleConfig;
     private final Path mNonSignedAAB;
-    private final Path mSignedAAB;
-    private final ApkSigner.SignerConfig mSignerConfig;
-    private final boolean mAlign;
+    private final CertificateInfo mSigningCertInfo;
     private final List<MetaData> mMetaData;
 
     public ApkToAABConverter(Builder builder) {
@@ -57,12 +53,10 @@ public class ApkToAABConverter extends FileConverter {
         mProtoOutput = mTempDir.resolve("proto.zip");
         mBaseZip = mTempDir.resolve("base.zip");
         mNonSignedAAB = mTempDir.resolve("non-signed.aab");
-        mSignedAAB = mTempDir.resolve("signed.aab");
-        mSignerConfig = builder.signerConfig;
+        mSigningCertInfo = builder.signingCertInfo;
         mBundleConfigPath = builder.bundleConfigPath;
         mBundleConfig = builder.bundleConfig;
         mMetaData = builder.metaData;
-        mAlign = builder.align;
     }
 
     @Override
@@ -71,7 +65,6 @@ public class ApkToAABConverter extends FileConverter {
         createBaseZip();
         buildAab();
         sign();
-        if (mAlign) align();
     }
 
     private void createProtoFormatZip() throws Exception {
@@ -165,35 +158,30 @@ public class ApkToAABConverter extends FileConverter {
         addLog("Successfully converted Apk to AAB");
     }
 
-    public void sign() throws ApkFormatException, IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-        if (mSignerConfig != null) {
+    public void sign() {
+        if (mSigningCertInfo != null) {
             addLog("Signing AAB");
-            new ApkSigner.Builder(ImmutableList.of(mSignerConfig))
-                    .setInputApk(mNonSignedAAB.toFile())
-                    .setOutputApk(mAlign ? mSignedAAB.toFile() : getOutputPath().toFile())
-                    //ToDo: use ApkUtils.getMinSdkVersion()
-                    .setMinSdkVersion(1)//ApkUtils.getMinimumSdkVersion(getInputPath()))
-                    .build()
-                    .sign();
+            SignHelper.INSTANCE.signWithFlinger(
+                    mSigningCertInfo,
+                    mNonSignedAAB.toFile(),
+                    getOutputPath().toFile()
+            );
         } else {
             addLog("No signer config provided, skipping signing");
+            FilesKt.copyTo(
+                    mNonSignedAAB.toFile(),
+                    getOutputPath().toFile(),
+                    true,
+                    8 * 1024
+            );
         }
-    }
-
-    public void align() {
-        addLog("Aligning aab");
-        ZipAligner aligner = new ZipAligner((mSignerConfig == null ? mNonSignedAAB : mSignedAAB), getOutputPath());
-        aligner.setVerbose(isVerbose());
-        aligner.align();
-        if(isVerbose())addLog(aligner.getLogs());
     }
 
     public static class Builder extends FileConverter.Builder<Builder> {
         private Path bundleConfigPath;
         private Config.BundleConfig bundleConfig;
         private final List<MetaData> metaData;
-        private ApkSigner.SignerConfig signerConfig;
-        private boolean align = false;
+        private CertificateInfo signingCertInfo;
 
         public Builder(Context context, Path apkPath, Path outputPath) {
             super(context, apkPath, outputPath);
@@ -206,7 +194,7 @@ public class ApkToAABConverter extends FileConverter {
             return this;
         }
 
-        public Builder setBundleConfig(Config.BundleConfig bundleConfig){
+        public Builder setBundleConfig(Config.BundleConfig bundleConfig) {
             bundleConfigPath = null;
             this.bundleConfig = bundleConfig;
             return this;
@@ -217,13 +205,8 @@ public class ApkToAABConverter extends FileConverter {
             return this;
         }
 
-        public Builder align() {
-            this.align = true;
-            return this;
-        }
-
-        public Builder setSignerConfig(ApkSigner.SignerConfig signerConfig) {
-            this.signerConfig = signerConfig;
+        public Builder setSigningCertInfo(CertificateInfo certInfo) {
+            this.signingCertInfo = certInfo;
             return this;
         }
 
