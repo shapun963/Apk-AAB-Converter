@@ -12,8 +12,8 @@ android {
     defaultConfig {
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 6
+        versionName = "1.6"
         applicationId = namespace
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,7 +49,8 @@ dependencies {
     implementation(libs.google.protobuf.java)
 
     implementation(libs.bcprov.jdk15on)
-    implementation(libs.android.tools.apksig)
+    implementation(libs.android.tools.zipflinger)
+    implementation(libs.android.tools.signflinger)
     implementation(libs.android.tools.bundletool)
 
     testImplementation(libs.junit)

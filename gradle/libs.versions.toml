@@ -20,7 +20,8 @@ google-protobuf-java = { module = "com.google.protobuf:protobuf-java", version =
 
 # add-ons
 bcprov-jdk15on = { module = "org.bouncycastle:bcprov-jdk15on", version = "1.70" }
-android-tools-apksig = { module = "com.android.tools.build:apksig", version.ref = "agp" }
+android-tools-zipflinger = { module = "com.android:zipflinger", version.ref = "agp" }
+android-tools-signflinger = { module = "com.android:signflinger", version.ref = "agp" }
 android-tools-bundletool = { module = "com.android.tools.build:bundletool", version = "1.15.5" }
 
 # test
