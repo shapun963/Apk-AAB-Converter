@@ -26,6 +26,8 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import kotlin.io.FilesKt;
+
 public class ApkToAABConverter extends FileConverter {
 
     private static final int BUFFER_SIZE = 1024 * 2;
@@ -166,6 +168,12 @@ public class ApkToAABConverter extends FileConverter {
             );
         } else {
             addLog("No signer config provided, skipping signing");
+            FilesKt.copyTo(
+                    mNonSignedAAB.toFile(),
+                    getOutputPath().toFile(),
+                    true,
+                    8 * 1024
+            );
         }
     }
 
@@ -186,7 +194,7 @@ public class ApkToAABConverter extends FileConverter {
             return this;
         }
 
-        public Builder setBundleConfig(Config.BundleConfig bundleConfig){
+        public Builder setBundleConfig(Config.BundleConfig bundleConfig) {
             bundleConfigPath = null;
             this.bundleConfig = bundleConfig;
             return this;
